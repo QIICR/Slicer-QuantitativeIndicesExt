@@ -1,7 +1,7 @@
-#ifndef _itkQIsComputationFilter_txx
-#define _itkQIsComputationFilter_txx
+#ifndef _itkQuantitativeIndicesComputationFilter_cxx
+#define _itkQuantitativeIndicesComputationFilter_cxx
 
-#include "itkQIsComputationFilter.h"
+#include "itkQuantitativeIndicesComputationFilter.h"
 
 #include "itkImageRegionConstIterator.h"
 #include "itkImageRegionConstIteratorWithIndex.h"
@@ -24,8 +24,8 @@ namespace itk
 
 //----------------------------------------------------------------------------
 template <class TImage, class TLabelImage>
-QIsComputationFilter<TImage, TLabelImage>
-::QIsComputationFilter()
+QuantitativeIndicesComputationFilter<TImage, TLabelImage>
+::QuantitativeIndicesComputationFilter()
 {
   this->ProcessObject::SetNumberOfRequiredInputs(2);
   this->ProcessObject::SetNumberOfRequiredOutputs(0);
@@ -34,8 +34,8 @@ QIsComputationFilter<TImage, TLabelImage>
 
 //----------------------------------------------------------------------------
 template <class TImage, class TLabelImage>
-QIsComputationFilter<TImage, TLabelImage>
-::~QIsComputationFilter()
+QuantitativeIndicesComputationFilter<TImage, TLabelImage>
+::~QuantitativeIndicesComputationFilter()
 {}
 
 
@@ -47,7 +47,7 @@ Sets the input volume, expected to be PET data.
 */
 template <class TImage, class TLabelImage>
 void
-QIsComputationFilter<TImage, TLabelImage>
+QuantitativeIndicesComputationFilter<TImage, TLabelImage>
 ::SetInputImage( const ImageType* input )
 {
 // Process object is not const-correct so the const_cast is required here
@@ -62,7 +62,7 @@ Sets the input volume, expected to be PET data.
 */
 template <class TImage, class TLabelImage>
 void
-QIsComputationFilter<TImage, TLabelImage>
+QuantitativeIndicesComputationFilter<TImage, TLabelImage>
 ::SetInputImage( ImageType* input )
 {
 // Process object is not const-correct so the const_cast is required here
@@ -77,9 +77,9 @@ Returns the input image volume.
 
 */
 template <class TImage, class TLabelImage>
-typename QIsComputationFilter<TImage, TLabelImage>
+typename QuantitativeIndicesComputationFilter<TImage, TLabelImage>
 ::ImagePointer
-QIsComputationFilter<TImage, TLabelImage>
+QuantitativeIndicesComputationFilter<TImage, TLabelImage>
 ::GetInputImage() const
 {
   if ( this->GetNumberOfInputs() < 1 )
@@ -101,7 +101,7 @@ Sets the label volume for the iput volume.
 */
 template <class TImage, class TLabelImage>
 void
-QIsComputationFilter<TImage, TLabelImage>
+QuantitativeIndicesComputationFilter<TImage, TLabelImage>
 ::SetInputLabelImage( const LabelImageType* input )
 {
 // Process object is not const-correct so the const_cast is required here
@@ -116,7 +116,7 @@ Sets the label volume for the iput volume.
 */
 template <class TImage, class TLabelImage>
 void
-QIsComputationFilter<TImage, TLabelImage>
+QuantitativeIndicesComputationFilter<TImage, TLabelImage>
 ::SetInputLabelImage( LabelImageType*  input )
 {
 // Process object is not const-correct so the const_cast is required here
@@ -131,9 +131,9 @@ Returns the label image volume.
 
 */
 template <class TImage, class TLabelImage>
-typename QIsComputationFilter<TImage, TLabelImage>
+typename QuantitativeIndicesComputationFilter<TImage, TLabelImage>
 ::LabelImagePointer
-QIsComputationFilter<TImage, TLabelImage>
+QuantitativeIndicesComputationFilter<TImage, TLabelImage>
 ::GetInputLabelImage() const
 {
   if ( this->GetNumberOfInputs() < 2 )
@@ -150,7 +150,7 @@ QIsComputationFilter<TImage, TLabelImage>
 //----------------------------------------------------------------------------
 template <class TImage, class TLabelImage>
 void
-QIsComputationFilter<TImage, TLabelImage>
+QuantitativeIndicesComputationFilter<TImage, TLabelImage>
 ::GenerateData()
 {
   this->CalculateMean();
@@ -169,7 +169,7 @@ Segmented Volume, and Metabolic Volume.
 */
 template <class TImage, class TLabelImage>
 void
-QIsComputationFilter<TImage, TLabelImage>
+QuantitativeIndicesComputationFilter<TImage, TLabelImage>
 ::CalculateMean()
 {
 
@@ -181,6 +181,20 @@ QIsComputationFilter<TImage, TLabelImage>
   double d_standardDeviation = 0.0;
   double d_segmentedVolume = 0.0;
   double d_metabolicVolume = 0.0;
+  double d_gly1 = 0.0;
+  double d_gly2 = 0.0;
+  double d_gly3 = 0.0;
+  double d_gly4 = 0.0;
+  double d_q1 = 0.0;
+  double d_q2 = 0.0;
+  double d_q3 = 0.0;
+  double d_q4 = 0.0;
+
+  double binSize = 0.0;
+  double sum1 = 0.0;
+  double sum2 = 0.0;
+  double sum3 = 0.0;
+  double sum4 = 0.0;
 
   typedef itk::ImageRegionConstIterator<ImageType>  InputIteratorType;
   typedef itk::ImageRegionConstIterator<LabelImageType>  LabelIteratorType;
@@ -200,7 +214,6 @@ QIsComputationFilter<TImage, TLabelImage>
   inputLabelRegion.SetSize(inputLabel->GetLargestPossibleRegion().GetSize());
 
   typename ImageType::SpacingType spacing = inputImage->GetSpacing();
-  double voxelSize = spacing[0] * spacing[1] * spacing[2];
 
   //Need to store all segmented values for some computations
   std::list<double> segmentedValues;
@@ -208,14 +221,26 @@ QIsComputationFilter<TImage, TLabelImage>
   {
     segmentedValues = m_SegmentedValues;
     std::list<double>::iterator listIt = segmentedValues.begin();
+    //Find min and max values
     while (listIt != segmentedValues.end())
     {
       double curValue = *listIt;
-      d_averageValue += curValue;
-      d_segmentedVolume += 1;
-      d_metabolicVolume += curValue; 
       if (curValue > d_maximumValue)  {d_maximumValue = curValue;}
       if (curValue < d_minimumValue)  {d_minimumValue = curValue;}
+      d_segmentedVolume += 1;
+      d_rmsValue += curValue*curValue;
+      listIt++;
+    }
+    //Find the distribution within the range
+    binSize = (d_maximumValue-d_minimumValue)*0.25;
+    listIt = segmentedValues.begin();
+    while (listIt != segmentedValues.end())
+    {
+      double curValue = *listIt;
+      if(curValue >= d_minimumValue && curValue <= (d_minimumValue + binSize)){d_q1++; sum1+=curValue;};
+      if(curValue > (d_minimumValue+binSize) && curValue <= (d_minimumValue+2*binSize)){d_q2++; sum2+=curValue;};
+      if(curValue > (d_minimumValue+2*binSize) && curValue <= (d_minimumValue+3*binSize)){d_q3++; sum3+=curValue;};
+      if(curValue > (d_minimumValue+3*binSize) && curValue <= (d_minimumValue+4*binSize)){d_q4++; sum4+=curValue;}; 
       listIt++;
     }
   }else{
@@ -231,29 +256,48 @@ QIsComputationFilter<TImage, TLabelImage>
       {
         double curValue = (double) inIt.Get();
         segmentedValues.push_back(curValue);
-        d_averageValue += curValue;
-        d_rmsValue += curValue*curValue;
-        d_segmentedVolume += 1;
-        d_metabolicVolume += curValue;
         if (curValue > d_maximumValue)  {d_maximumValue = curValue;}
         if (curValue < d_minimumValue)  {d_minimumValue = curValue;}
+        d_rmsValue += curValue*curValue;
+        d_segmentedVolume += 1;
       }
       ++inIt;
       ++laIt;
     }
+    std::list<double>::iterator listIt = segmentedValues.begin();
+    //Find the distribution within the range
+    binSize = (d_maximumValue-d_minimumValue)*0.25;
+    while (listIt != segmentedValues.end())
+    {
+      double curValue = *listIt;
+      if(curValue >= d_minimumValue && curValue <= (d_minimumValue + binSize)){d_q1++; sum1+=curValue;};
+      if(curValue > (d_minimumValue+binSize) && curValue <= (d_minimumValue+2*binSize)){d_q2++; sum2+=curValue;};
+      if(curValue > (d_minimumValue+2*binSize) && curValue <= (d_minimumValue+3*binSize)){d_q3++; sum3+=curValue;};
+      if(curValue > (d_minimumValue+3*binSize) && curValue <= (d_minimumValue+4*binSize)){d_q4++; sum4+=curValue;}; 
+      listIt++;
+    }
+    //Set the member variables after the list is generated
     m_SegmentedValues = segmentedValues;
     m_ListGenerated = true;
   }
 
-  d_metabolicVolume *= (spacing[0] * spacing[1] * spacing[2]);
-
-  d_averageValue /= d_segmentedVolume;
-  d_rmsValue = std::sqrt(d_rmsValue / d_segmentedVolume);
   double voxelCount = d_segmentedVolume;
-  d_segmentedVolume *= voxelSize;
+  double voxelVolume = (spacing[0] * spacing[1] * spacing[2]);
+  d_averageValue = (sum1+sum2+sum3+sum4) / voxelCount;
+  d_rmsValue = std::sqrt(d_rmsValue / voxelCount);
+  d_segmentedVolume *= voxelVolume;
+  //d_metabolicVolume = (sum1+sum2+sum3+sum4)*voxelVolume;
+  d_gly1 = sum1*voxelVolume;
+  d_gly2 = sum2*voxelVolume;
+  d_gly3 = sum3*voxelVolume;
+  d_gly4 = sum4*voxelVolume;
+  d_metabolicVolume = d_gly1 + d_gly2 + d_gly3 + d_gly4;
+  d_q1 = d_q1/voxelCount;
+  d_q2 = d_q2/voxelCount;
+  d_q3 = d_q3/voxelCount;
+  d_q4 = d_q4/voxelCount;
 
 	std::list<double>::iterator listIt = segmentedValues.begin();
-
 	while (listIt != segmentedValues.end())
 	{
 		d_standardDeviation += ((*listIt)-d_averageValue) * ((*listIt)-d_averageValue);
@@ -268,9 +312,18 @@ QIsComputationFilter<TImage, TLabelImage>
   m_AverageValue = (PixelType) d_averageValue;
   m_RMSValue = (PixelType) d_rmsValue;
   m_MinimumValue = (PixelType) d_minimumValue;
+  m_MaximumValue = (PixelType) d_maximumValue;
   m_SegmentedVolume = (float) d_segmentedVolume;
-  m_MetabolicVolume = (PixelType) d_metabolicVolume;
+  m_MetabolicVolume = d_metabolicVolume;
   m_StandardDeviation = (PixelType) d_standardDeviation;
+  m_Gly1 = d_gly1;
+  m_Gly2 = d_gly2;
+  m_Gly3 = d_gly3;
+  m_Gly4 = d_gly4;
+  m_Q1 = (float) d_q1;
+  m_Q2 = (float) d_q2;
+  m_Q3 = (float) d_q3;
+  m_Q4 = (float) d_q4;
 
 }
 
@@ -283,7 +336,7 @@ First Quartile, Median, Third Quartile, Upper adjacent
 */
 template <class TImage, class TLabelImage>
 void
-QIsComputationFilter<TImage, TLabelImage>
+QuantitativeIndicesComputationFilter<TImage, TLabelImage>
 ::CalculateQuartiles()
 {
 
@@ -339,18 +392,18 @@ QIsComputationFilter<TImage, TLabelImage>
 
   //Sort the values to simplify getting the quartiles and median.
   segmentedValues.sort();
-  int segmentedValuesSize = segmentedValues.size();
+  float segmentedValuesSize = segmentedValues.size();
   int list_progress = 0;
 	std::list<double>::iterator listIt = segmentedValues.begin();
   //Now scan through to find the quartiles.
 	while (listIt != segmentedValues.end())
 	{
 		list_progress++;
-		if (list_progress == segmentedValuesSize / 4)
+		if (list_progress == (int)(segmentedValuesSize*0.25))
 		{ d_firstQuartileValue = (*listIt); }
-		if (list_progress == segmentedValuesSize / 2)
+		if (list_progress == (int)(segmentedValuesSize*0.5))
 		{ d_medianValue = (*listIt);  }
-		if (list_progress == 3 * segmentedValuesSize / 4)
+		if (list_progress == (int)(segmentedValuesSize*0.75))
 		{ d_thirdQuartileValue = (*listIt); }
 		listIt++;
 	}
@@ -387,12 +440,13 @@ Standardized added metabolic activity
 */
 template <class TImage, class TLabelImage>
 void
-QIsComputationFilter<TImage, TLabelImage>
+QuantitativeIndicesComputationFilter<TImage, TLabelImage>
 ::CalculateSAM()
 {
 
   //Declare the variables to determine
   double d_SAM = 0.0;
+  double d_SAMBackground = 0.0;
   double d_averageValue = 0.0;
   double d_segmentedVolume = 0.0;
 
@@ -480,11 +534,12 @@ QIsComputationFilter<TImage, TLabelImage>
       listIt++;
     }
   d_SAM = d_SAM / dilatedSize;
-  double meanBG = (d_SAM*dilatedSize-d_averageValue*d_segmentedVolume)/(dilatedSize-d_segmentedVolume);
-  d_SAM = (d_averageValue-meanBG)*d_segmentedVolume*voxelSize;
+  d_SAMBackground = (d_SAM*dilatedSize-d_averageValue*d_segmentedVolume)/(dilatedSize-d_segmentedVolume);
+  d_SAM = (d_averageValue-d_SAMBackground)*d_segmentedVolume*voxelSize;
 
   //Set the class variables to the values we've determined.
   m_SAMValue = (PixelType) d_SAM;
+  m_SAMBackground = (PixelType) d_SAMBackground;
 
 }
 
@@ -498,7 +553,7 @@ Peak, Peak Location
 */
 template <class TImage, class TLabelImage>
 void
-QIsComputationFilter<TImage, TLabelImage>
+QuantitativeIndicesComputationFilter<TImage, TLabelImage>
 ::CalculatePeak()
 {
 
@@ -879,7 +934,7 @@ QIsComputationFilter<TImage, TLabelImage>
 //----------------------------------------------------------------------------
 template <class TImage, class TLabelImage>
 void
-QIsComputationFilter<TImage, TLabelImage>
+QuantitativeIndicesComputationFilter<TImage, TLabelImage>
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf(os,indent);

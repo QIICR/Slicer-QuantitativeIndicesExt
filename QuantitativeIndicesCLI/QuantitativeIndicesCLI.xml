@@ -84,8 +84,8 @@
       <default>false</default>
     </boolean>
     <boolean>
-      <name>Quart1</name>
-      <label>1st Quartile</label>
+      <name>First_Quartile</name>
+      <label>First Quartile</label>
       <longflag>--quart1</longflag>
       <description><![CDATA[First quartile in region of interest]]></description>
       <default>false</default>
@@ -98,14 +98,14 @@
       <default>false</default>
     </boolean>
     <boolean>
-      <name>Quart3</name>
-      <label>3rd Quartile</label>
+      <name>Third_Quartile</name>
+      <label>Third Quartile</label>
       <longflag>--quart3</longflag>
       <description><![CDATA[Third quartile in region of interest]]></description>
       <default>false</default>
     </boolean>
     <boolean>
-      <name>Adj</name>
+      <name>Upper_Adjacent</name>
       <label>Upper Adjacent</label>
       <longflag>--adj</longflag>
       <description><![CDATA[Upper adjacent value in region of interest]]></description>
@@ -119,56 +119,56 @@
       <default>false</default>
     </boolean>
     <boolean>
-      <name>Gly1</name>
+      <name>Glycolysis_Q1</name>
       <label>Glycolysis Q1</label>
       <longflag>--gly1</longflag>
       <description><![CDATA[Metabolic tumor volume in 1st quarter of distribution]]></description>
       <default>false</default>
     </boolean>
     <boolean>
-      <name>Gly2</name>
+      <name>Glycolysis_Q2</name>
       <label>Glycolysis Q2</label>
       <longflag>--gly2</longflag>
       <description><![CDATA[Metabolic tumor volume in 2nd quarter of distribution]]></description>
       <default>false</default>
     </boolean>
     <boolean>
-      <name>Gly3</name>
+      <name>Glycolysis_Q3</name>
       <label>Glycolysis Q3</label>
       <longflag>--gly3</longflag>
       <description><![CDATA[Metabolic tumor volume in 3rd quarter of distribution]]></description>
       <default>false</default>
     </boolean>
     <boolean>
-      <name>Gly4</name>
+      <name>Glycolysis_Q4</name>
       <label>Glycolysis Q4</label>
       <longflag>--gly4</longflag>
       <description><![CDATA[Metabolic tumor volume in 4th quarter of distribution]]></description>
       <default>false</default>
     </boolean>
     <boolean>
-      <name>Q1</name>
+      <name>Q1_Distribution</name>
       <label>Q1 Distribution</label>
       <longflag>--q1</longflag>
       <description><![CDATA[1st quarter distribution of range in region of interest]]></description>
       <default>false</default>
     </boolean>
     <boolean>
-      <name>Q2</name>
+      <name>Q2_Distribution</name>
       <label>Q2 Distribution</label>
       <longflag>--q2</longflag>
       <description><![CDATA[2nd quarter distribution of range in region of interest]]></description>
       <default>false</default>
     </boolean>
     <boolean>
-      <name>Q3</name>
+      <name>Q3_Distribution</name>
       <label>Q3 Distribution</label>
       <longflag>--q3</longflag>
       <description><![CDATA[3rd quarter distribution of range in region of interest]]></description>
       <default>false</default>
     </boolean>
     <boolean>
-      <name>Q4</name>
+      <name>Q4_Distribution</name>
       <label>Q4 Distribution</label>
       <longflag>--q4</longflag>
       <description><![CDATA[4th quarter distribution of range in region of interest]]></description>
@@ -182,7 +182,7 @@
       <default>false</default>
     </boolean>
     <boolean>
-      <name>SAMBG</name>
+      <name>SAM_Background</name>
       <label>SAM mean background</label>
       <longflag>--sambg</longflag>
       <description><![CDATA[Standardized added metabolic activity mean background]]></description>
@@ -236,7 +236,7 @@
       <description><![CDATA[Volume of region of interest]]></description>
     </string>
     <string>
-      <name>Quart1_s</name>
+      <name>First_Quartile_s</name>
       <label>1st Quartile</label>
       <channel>output</channel>
       <description><![CDATA[First quartile in region of interest]]></description>
@@ -248,13 +248,13 @@
       <description><![CDATA[Median value in region of interest]]></description>
     </string>
     <string>
-      <name>Quart3_s</name>
+      <name>Third_Quartile_s</name>
       <label>3rd Quartile</label>
       <channel>output</channel>
       <description><![CDATA[Third quartile in region of interest]]></description>
     </string>
     <string>
-      <name>Adj_s</name>
+      <name>Upper_Adjacent_s</name>
       <label>Upper Adjacent</label>
       <channel>output</channel>
       <description><![CDATA[Upper adjacent value in region of interest]]></description>
@@ -266,49 +266,49 @@
       <description><![CDATA[Metabolic tumor volume]]></description>
     </string>
     <string>
-      <name>Gly1_s</name>
+      <name>Glycolysis_Q1_s</name>
       <label>Glycolysis Q1</label>
       <channel>output</channel>
       <description><![CDATA[Metabolic tumor volume in 1st quarter of distribution]]></description>
     </string>
     <string>
-      <name>Gly2_s</name>
+      <name>Glycolysis_Q2_s</name>
       <label>Glycolysis Q2</label>
       <channel>output</channel>
       <description><![CDATA[Metabolic tumor volume in 2nd quarter of distribution]]></description>
     </string>
     <string>
-      <name>Gly3_s</name>
+      <name>Glycolysis_Q3_s</name>
       <label>Glycolysis Q3</label>
       <channel>output</channel>
       <description><![CDATA[Metabolic tumor volume in 3rd quarter of distribution]]></description>
     </string>
     <string>
-      <name>Gly4_s</name>
+      <name>Glycolysis_Q4_s</name>
       <label>Glycolysis Q4</label>
       <channel>output</channel>
       <description><![CDATA[Metabolic tumor volume in 4th quarter of distribution]]></description>
     </string>
     <string>
-      <name>Q1_s</name>
+      <name>Q1_Distribution_s</name>
       <label>Q1 Distribution</label>
       <channel>output</channel>
       <description><![CDATA[1st quarter distribution of range in region of interest]]></description>
     </string>
     <string>
-      <name>Q2_s</name>
+      <name>Q2_Distribution_s</name>
       <label>Q2 Distribution</label>
       <channel>output</channel>
       <description><![CDATA[2nd quarter distribution of range in region of interest]]></description>
     </string>
     <string>
-      <name>Q3_s</name>
+      <name>Q3_Distribution_s</name>
       <label>Q3 Distribution</label>
       <channel>output</channel>
       <description><![CDATA[3rd quarter distribution of range in region of interest]]></description>
     </string>
     <string>
-      <name>Q4_s</name>
+      <name>Q4_Distribution_s</name>
       <label>Q4 Distribution</label>
       <channel>output</channel>
       <description><![CDATA[4th quarter distribution of range in region of interest]]></description>
@@ -320,7 +320,7 @@
       <description><![CDATA[Standardized added metabolic activity]]></description>
     </string>
     <string>
-      <name>SAMBG_s</name>
+      <name>SAM_Background_s</name>
       <label>SAM mean background</label>
       <channel>output</channel>
       <description><![CDATA[Standardized added metabolic activity mean background]]></description>

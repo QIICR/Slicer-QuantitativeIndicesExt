@@ -81,6 +81,7 @@ class QuantitativeIndicesToolWidget:
     self.reloadAndTestButton.toolTip = "Reload this module and then run the self tests."
     reloadFormLayout.addWidget(self.reloadAndTestButton)
     self.reloadAndTestButton.connect('clicked()', self.onReloadAndTest)
+    self.reloadAndTestButton.setEnabled(False)
 
     #
     # Parameters Area
@@ -88,8 +89,6 @@ class QuantitativeIndicesToolWidget:
     parametersCollapsibleButton = ctk.ctkCollapsibleButton()
     parametersCollapsibleButton.text = "Parameters"
     self.layout.addWidget(parametersCollapsibleButton)
-
-    # Layout within the dummy collapsible button
     parametersFormLayout = qt.QFormLayout(parametersCollapsibleButton)
 
     #
@@ -359,12 +358,19 @@ class QuantitativeIndicesToolWidget:
     self.selectAllButton.connect('clicked(bool)',self.onSelectAllButton)
     self.deselectAllButton.connect('clicked(bool)',self.onDeselectAllButton)
 
+
   def onGrayscaleSelect(self, node):
+    """ Set the grayscale volume node.  Check if other buttons can be enabled
+    """
     self.grayscaleNode = node
     self.parameterSetButton.enabled = bool(self.grayscaleNode) and bool(self.labelNode)
     self.calculateButton.enabled = bool(self.grayscaleNode) and bool(self.labelNode) and bool(self.cliNodes)
 
+
   def onLabelSelect(self, node):
+    """ Set the label volume node.  Read the image and determine the number of label values.  Check if other
+    buttons can be enabled
+    """
     self.labelNode = node
     if bool(self.labelNode):
       #find the correct number of label values
@@ -381,7 +387,11 @@ class QuantitativeIndicesToolWidget:
     self.parameterSetButton.enabled = bool(self.grayscaleNode) and bool(self.labelNode)
     self.calculateButton.enabled = bool(self.grayscaleNode) and bool(self.labelNode) and bool(self.cliNodes)
 
+
   def onParameterSetButton(self):
+    """ Generate mostly-blank vtkMRMLCommandLineModuleNodes for every label value.  Give each node a unique name
+    so it can easily be found later.  Disable the volume selectors.  Enable the calculate button.
+    """
     if not bool(self.cliNodes):
       self.cliNodes = {}
       self.parameterSetButton.setText('Generating...')
@@ -402,7 +412,11 @@ class QuantitativeIndicesToolWidget:
     self.changeVolumesButton.enabled = bool(self.grayscaleNode) and bool(self.labelNode) and bool(self.cliNodes)
     self.parameterSetButton.enabled = not (bool(self.grayscaleNode) and bool(self.labelNode) and bool(self.cliNodes))
 
+
   def onChangeVolumesButton(self):
+    """ Bring up a warning window.  If proceeding, delete all vtkMRMLCommandLineModuleNodes that were previously 
+    generated.  Re-enable the volume selectors and parameter set button.
+    """
     if self.confirmDelete('Changing the volumes will delete any previous calculations from the scene.  Proceed?'):
       for i in xrange(0,self.totalLabels):
         slicer.mrmlScene.RemoveNode(self.cliNodes[i])
@@ -416,16 +430,23 @@ class QuantitativeIndicesToolWidget:
     else:
       return
     
+
   def confirmDelete(self, message):
+    """ Warning pop-up before deleting previously calculated nodes
+    """
     delete = qt.QMessageBox.question(slicer.util.mainWindow(),'Quantitative Indices',message, 
                     qt.QMessageBox.Yes, qt.QMessageBox.No)
     return delete == qt.QMessageBox.Yes
     
+
   def onLabelValueSelect(self, int):
     #TODO make this do something, possibly select the correct node associated with label value?
     pass
     
+
   def onSelectAllButton(self):
+    """ Check all quantitative features
+    """
     self.MeanCheckBox.checked = True
     self.VarianceCheckBox.checked = True
     self.MinCheckBox.checked = True
@@ -449,7 +470,10 @@ class QuantitativeIndicesToolWidget:
     self.PeakCheckBox.checked = True
     self.VolumeCheckBox.checked = True
     
+
   def onDeselectAllButton(self):
+    """ Uncheck all quantitative features
+    """
     self.MeanCheckBox.checked = False
     self.VarianceCheckBox.checked = False
     self.MinCheckBox.checked = False
@@ -473,10 +497,14 @@ class QuantitativeIndicesToolWidget:
     self.PeakCheckBox.checked = False
     self.VolumeCheckBox.checked = False
 
+
   def cleanup(self):
     pass
 
+
   def volumesAreValid(self):
+    """ Returns true if grayscale volume and label volume are the same dimensions
+    """
     if not self.grayscaleNode or not self.labelNode:
       return False
     if not self.grayscaleNode.GetImageData() or not self.labelNode.GetImageData():
@@ -485,11 +513,11 @@ class QuantitativeIndicesToolWidget:
       return False
     return True
 
-  #TODO have a method to check for new parameters    
-  def getNewParameters(self):
-    pass
 
   def onCalculateButton(self):
+    """ Creates a temporary vtkMRMLCommandLineModuleNode after running the logic and passes it
+    to writeResults() method
+    """
     if not self.volumesAreValid():
       qt.QMessageBox.warning(slicer.util.mainWindow(),
           "Quantitative Indices", "Volumes do not have the same geometry.")
@@ -527,9 +555,9 @@ class QuantitativeIndicesToolWidget:
     PeakFlag = self.PeakCheckBox.checked
     VolumeFlag = self.VolumeCheckBox.checked
      
-    newNode = logic.run(self.grayscaleNode, self.labelNode, None, enableScreenshotsFlag, 
-                        screenshotScaleFactor, labelValue, meanFlag, varianceFlag, minFlag, maxFlag, quart1Flag, medianFlag, 
-                        quart3Flag, upperAdjacentFlag, q1Flag, q2Flag, q3Flag, q4Flag, gly1Flag, gly2Flag, gly3Flag, gly4Flag, 
+    newNode = logic.run(self.grayscaleNode, self.labelNode, None, enableScreenshotsFlag, screenshotScaleFactor, 
+                        labelValue, meanFlag, varianceFlag, minFlag, maxFlag, quart1Flag, medianFlag, quart3Flag, 
+                        upperAdjacentFlag, q1Flag, q2Flag, q3Flag, q4Flag, gly1Flag, gly2Flag, gly3Flag, gly4Flag, 
                         MTVFlag, SAMFlag, SAMBGFlag, RMSFlag, PeakFlag, VolumeFlag)
                         
     newNode.SetName('Temp_CommandLineModule')
@@ -539,6 +567,10 @@ class QuantitativeIndicesToolWidget:
     
 
   def writeResults(self,vtkMRMLCommandLineModuleNode):
+    """ Determines the difference between the temporary vtkMRMLCommandLineModuleNode and the "member" 
+    vtkMRMLCommandLineModuleNode for every quantitative feature.  Creates an output text to display
+    on the screen.  Deletes the temporary node.
+    """
     newNode = vtkMRMLCommandLineModuleNode
     labelValue = int(self.labelValueSelector.value)
     oldNode = self.cliNodes[labelValue]
@@ -553,6 +585,9 @@ class QuantitativeIndicesToolWidget:
           oldNode.SetParameterAsString(feature,newResult)
           oldNode.SetParameterAsString(flagName,'true')
         feature = feature.replace('_s',':\t')
+        feature = feature.replace('_',' ')
+        if len(feature) < 14:
+          feature = feature + '\t'
         resultText = resultText + feature + newResult + '\n'
     self.resultsFrameLabel.setText(resultText)
     slicer.mrmlScene.RemoveNode(newNode)
@@ -603,6 +638,7 @@ class QuantitativeIndicesToolWidget:
     globals()[widgetName.lower()].setup()
     setattr(globals()['slicer'].modules, widgetName, globals()[widgetName.lower()])
 
+
   def onReloadAndTest(self,moduleName="QuantitativeIndicesTool"):
     try:
       self.onReload()
@@ -631,6 +667,7 @@ class QuantitativeIndicesToolLogic:
     #TODO initialize the nodes
     pass
 
+
   def hasImageData(self,volumeNode):
     """This is a dummy logic method that 
     returns true if the passed in volume
@@ -644,6 +681,7 @@ class QuantitativeIndicesToolLogic:
       return False
     return True
 
+
   def delayDisplay(self,message,msec=1000):
     #
     # logic version of delay display
@@ -656,6 +694,7 @@ class QuantitativeIndicesToolLogic:
     self.infoLayout.addWidget(self.label)
     qt.QTimer.singleShot(msec, self.info.close)
     self.info.exec_()
+
 
   def takeScreenshot(self,name,description,type=-1):
     # show the message even if not taking a screen shot
@@ -695,7 +734,7 @@ class QuantitativeIndicesToolLogic:
     annotationLogic = slicer.modules.annotations.logic()
     annotationLogic.CreateSnapShot(name, description, type, self.screenshotScaleFactor, imageData)
 
-  #def run(self,inputVolume,outputVolume,enableScreenshots=0,screenshotScaleFactor=1):
+
   def run(self,inputVolume,labelVolume,cliNode,enableScreenshots=0,screenshotScaleFactor=1,labelValue=1,mean=False,
           variance=False,minimum=False,maximum=False,quart1=False,median=False,quart3=False,adj=False,
           q1=False,q2=False,q3=False,q4=False,gly1=False,gly2=False,gly3=False,gly4=False,mtv=False,
@@ -718,35 +757,35 @@ class QuantitativeIndicesToolLogic:
     if(maximum):
       parameters['Max'] = 'true'
     if(quart1):
-      parameters['Quart1'] = 'true'
+      parameters['First_Quartile'] = 'true'
     if(median):
       parameters['Median'] = 'true'
     if(quart3):
-      parameters['Quart3'] = 'true'
+      parameters['Third_Quartile'] = 'true'
     if(adj):
-      parameters['Adj'] = 'true'
+      parameters['Upper_Adjacent'] = 'true'
     if(q1):
-      parameters['Q1'] = 'true'
+      parameters['Q1_Distribution'] = 'true'
     if(q2):
-      parameters['Q2'] = 'true'
+      parameters['Q2_Distribution'] = 'true'
     if(q3):
-      parameters['Q3'] = 'true'
+      parameters['Q3_Distribution'] = 'true'
     if(q4):
-      parameters['Q4'] = 'true'
+      parameters['Q4_Distribution'] = 'true'
     if(gly1):
-      parameters['Gly1'] = 'true'
+      parameters['Glycolysis_Q1'] = 'true'
     if(gly2):
-      parameters['Gly2'] = 'true'
+      parameters['Glycolysis_Q2'] = 'true'
     if(gly3):
-      parameters['Gly3'] = 'true'
+      parameters['Glycolysis_Q3'] = 'true'
     if(gly4):
-      parameters['Gly4'] = 'true'
+      parameters['Glycolysis_Q4'] = 'true'
     if(mtv):
       parameters['MTV'] = 'true'
     if(sam):
       parameters['SAM'] = 'true'
     if(samBG):
-      parameters['SAMBG'] = 'true'
+      parameters['SAM_Background'] = 'true'
     if(rms):
       parameters['RMS'] = 'true'
     if(peak):

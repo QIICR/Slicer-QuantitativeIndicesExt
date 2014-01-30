@@ -37,21 +37,21 @@ int main( int argc, char * argv[] )
   if(!Max){writeFile << "Max_s = --" << endl;};
   if(!Min){writeFile << "Min_s = --" << endl;};
   if(!Volume){writeFile << "Volume_s = --" << endl;};
-  if(!Quart1){writeFile << "Quart1_s = --" << endl;};
+  if(!First_Quartile){writeFile << "First_Quartile_s = --" << endl;};
   if(!Median){writeFile << "Median_s = --" << endl;};
-  if(!Quart3){writeFile << "Quart3_s = --" << endl;};
-  if(!Adj){writeFile << "Adj_s = --" << endl;};
+  if(!Third_Quartile){writeFile << "Third_Quartile_s = --" << endl;};
+  if(!Upper_Adjacent){writeFile << "Upper_Adjacent_s = --" << endl;};
   if(!MTV){writeFile << "MTV_s = --" << endl;};
-  if(!Gly1){writeFile << "Gly1_s = --" << endl;};
-  if(!Gly2){writeFile << "Gly2_s = --" << endl;};
-  if(!Gly3){writeFile << "Gly3_s = --" << endl;};
-  if(!Gly4){writeFile << "Gly4_s = --" << endl;};
-  if(!Q1){writeFile << "Q1_s = --" << endl;};
-  if(!Q2){writeFile << "Q2_s = --" << endl;};
-  if(!Q3){writeFile << "Q3_s = --" << endl;};
-  if(!Q4){writeFile << "Q4_s = --" << endl;};
+  if(!Glycolysis_Q1){writeFile << "Glycolysis_Q1_s = --" << endl;};
+  if(!Glycolysis_Q2){writeFile << "Glycolysis_Q2_s = --" << endl;};
+  if(!Glycolysis_Q3){writeFile << "Glycolysis_Q3_s = --" << endl;};
+  if(!Glycolysis_Q4){writeFile << "Glycolysis_Q4_s = --" << endl;};
+  if(!Q1_Distribution){writeFile << "Q1_Distribution_s = --" << endl;};
+  if(!Q2_Distribution){writeFile << "Q2_Distribution_s = --" << endl;};
+  if(!Q3_Distribution){writeFile << "Q3_Distribution_s = --" << endl;};
+  if(!Q4_Distribution){writeFile << "Q4_Distribution_s = --" << endl;};
   if(!SAM){writeFile << "SAM_s = --" << endl;};
-  if(!SAMBG){writeFile << "SAMBG_s = --" << endl;};
+  if(!SAM_Background){writeFile << "SAM_Background_s = --" << endl;};
   if(!Peak){writeFile << "Peak_s = --" << endl;};
 
   typedef itk::QuantitativeIndicesComputationFilter<ImageType,LabelImageType> QIFilterType;
@@ -62,7 +62,7 @@ int main( int argc, char * argv[] )
   qiCompute->Update();
 
 
-  if(Mean||RMS||Variance||Max||Min||Volume||MTV||Gly1||Gly2||Gly3||Gly4||Q1||Q2||Q3||Q4)
+  if(Mean||RMS||Variance||Max||Min||Volume||MTV||Glycolysis_Q1||Glycolysis_Q2||Glycolysis_Q3||Glycolysis_Q4||Q1_Distribution||Q2_Distribution||Q3_Distribution||Q4_Distribution)
     {
       qiCompute->CalculateMean();
       if(Mean){
@@ -94,70 +94,70 @@ int main( int argc, char * argv[] )
         writeFile << "MTV_s = " << (double) qiCompute->GetMetabolicVolume() << endl;
         cout << "MTV: " << (double) qiCompute->GetMetabolicVolume() << endl;
       }
-      if(Gly1){
-        writeFile << "Gly1_s = " << (double) qiCompute->GetGly1() << endl;
-        cout << "Gly1: " << (double) qiCompute->GetGly1() << endl;
+      if(Glycolysis_Q1){
+        writeFile << "Glycolysis_Q1_s = " << (double) qiCompute->GetGly1() << endl;
+        cout << "Glycolysis Q1: " << (double) qiCompute->GetGly1() << endl;
       }
-      if(Gly2){
-        writeFile << "Gly2_s = " << (double) qiCompute->GetGly2() << endl;
-        cout << "Gly2: " << (double) qiCompute->GetGly2() << endl;
+      if(Glycolysis_Q2){
+        writeFile << "Glycolysis_Q2_s = " << (double) qiCompute->GetGly2() << endl;
+        cout << "Glycolysis Q2: " << (double) qiCompute->GetGly2() << endl;
       }
-      if(Gly3){
-        writeFile << "Gly3_s = " << (double) qiCompute->GetGly3() << endl;
-        cout << "Gly3: " << (double) qiCompute->GetGly3() << endl;
+      if(Glycolysis_Q3){
+        writeFile << "Glycolysis_Q3_s = " << (double) qiCompute->GetGly3() << endl;
+        cout << "Glycolysis Q3: " << (double) qiCompute->GetGly3() << endl;
       }
-      if(Gly4){
-        writeFile << "Gly4_s = " << (double) qiCompute->GetGly4() << endl;
-        cout << "Gly4: " << (double) qiCompute->GetGly4() << endl;
+      if(Glycolysis_Q4){
+        writeFile << "Glycolysis_Q4_s = " << (double) qiCompute->GetGly4() << endl;
+        cout << "Glycolysis Q4: " << (double) qiCompute->GetGly4() << endl;
       }
-      if(Q1){
-        writeFile << "Q1_s = " << (double) qiCompute->GetQ1() << endl;
-        cout << "Q1: " << (double) qiCompute->GetQ1() << endl;
+      if(Q1_Distribution){
+        writeFile << "Q1_Distribution_s = " << (double) qiCompute->GetQ1() << endl;
+        cout << "Q1 Distribution: " << (double) qiCompute->GetQ1() << endl;
       }
-      if(Q2){
-        writeFile << "Q2_s = " << (double) qiCompute->GetQ2() << endl;
-        cout << "Q2: " << (double) qiCompute->GetQ2() << endl;
+      if(Q2_Distribution){
+        writeFile << "Q2_Distribution_s = " << (double) qiCompute->GetQ2() << endl;
+        cout << "Q2 Distribution: " << (double) qiCompute->GetQ2() << endl;
       }
-      if(Q3){
-        writeFile << "Q3_s = " << (double) qiCompute->GetQ3() << endl;
-        cout << "Q3: " << (double) qiCompute->GetQ3() << endl;
+      if(Q3_Distribution){
+        writeFile << "Q3_Distribution_s = " << (double) qiCompute->GetQ3() << endl;
+        cout << "Q3 Distribution: " << (double) qiCompute->GetQ3() << endl;
       }
-      if(Q4){
-        writeFile << "Q4_s = " << (double) qiCompute->GetQ4() << endl;
-        cout << "Q4: " << (double) qiCompute->GetQ4() << endl;
+      if(Q4_Distribution){
+        writeFile << "Q4_Distribution_s = " << (double) qiCompute->GetQ4() << endl;
+        cout << "Q4 Distribution: " << (double) qiCompute->GetQ4() << endl;
       }
     }
 
-  if(Quart1 || Median || Quart3 || Adj)
+  if(First_Quartile || Median || Third_Quartile || Upper_Adjacent)
     {
       qiCompute->CalculateQuartiles();
-      if(Quart1){
-        writeFile << "Quart1_s = " << (double) qiCompute->GetFirstQuartileValue() << endl;
+      if(First_Quartile){
+        writeFile << "First_Quartile_s = " << (double) qiCompute->GetFirstQuartileValue() << endl;
         cout << "1st Quartile: " << (double) qiCompute->GetFirstQuartileValue() << endl;
       }
       if(Median){
         writeFile << "Median_s = " << (double) qiCompute->GetMedianValue() << endl;
         cout << "Median: " << (double) qiCompute->GetMedianValue() << endl;
       }
-      if(Quart3){
-        writeFile << "Quart3_s = " << (double) qiCompute->GetThirdQuartileValue() << endl;
+      if(Third_Quartile){
+        writeFile << "Third_Quartile_s = " << (double) qiCompute->GetThirdQuartileValue() << endl;
         cout << "3rd Quartile: " << (double) qiCompute->GetThirdQuartileValue() << endl;
       }
-      if(Adj){
-        writeFile << "Adj_s = " << (double) qiCompute->GetUpperAdjacentValue() << endl;
+      if(Upper_Adjacent){
+        writeFile << "Upper_Adjacent_s = " << (double) qiCompute->GetUpperAdjacentValue() << endl;
         cout << "Upper Adjacent: " << (double) qiCompute->GetUpperAdjacentValue() << endl;
       }
     }
 
-  if(SAM||SAMBG)
+  if(SAM||SAM_Background)
     {
       qiCompute->CalculateSAM();
       if(SAM){
         writeFile << "SAM_s = " << (double) qiCompute->GetSAMValue() << endl;
         cout << "SAM: " << (double) qiCompute->GetSAMValue() << endl;
       }
-      if(SAMBG){
-        writeFile << "SAMBG_s = " << (double) qiCompute->GetSAMBackground() << endl;
+      if(SAM_Background){
+        writeFile << "SAM_Background_s = " << (double) qiCompute->GetSAMBackground() << endl;
         cout << "SAM mean background: " << (double) qiCompute->GetSAMBackground() << endl;
       }
     }

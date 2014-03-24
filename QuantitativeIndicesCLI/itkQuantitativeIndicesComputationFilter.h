@@ -51,7 +51,7 @@ public:
   itkGetMacro(RMSValue, PixelType);
   itkGetMacro(MinimumValue, PixelType);
   itkGetMacro(PeakValue, PixelType);
-  itkGetMacro(MetabolicVolume, double);
+  itkGetMacro(TotalLesionGlycolysis, double);
   itkGetMacro(SegmentedVolume, float);
   itkGetMacro(PeakLocation, typename ImageType::PointType);
   itkGetMacro(MedianValue, PixelType);
@@ -106,8 +106,8 @@ private:
   PointType m_PeakLocation;
   /** The segmented volume.  */
   float m_SegmentedVolume;
-  /** The metabolic volume segmented.  */
-  double m_MetabolicVolume;
+  /** The total lesion glycolysis.  */
+  double m_TotalLesionGlycolysis;
   /** The MTV in 1st quarter of range  */
   double m_Gly1;
   /** The MTV in 2nd quarter of range  */

@@ -164,7 +164,7 @@ QuantitativeIndicesComputationFilter<TImage, TLabelImage>
 CalculateMean
 Actually runs the calculations to determine:
 Minimum, Maximum, Average, RMS, Standard Deviation,
-Segmented Volume, and Metabolic Volume.
+Segmented Volume, and Lesion Glycolysis.
 
 */
 template <class TImage, class TLabelImage>
@@ -180,7 +180,7 @@ QuantitativeIndicesComputationFilter<TImage, TLabelImage>
   double d_rmsValue = 0.0;
   double d_standardDeviation = 0.0;
   double d_segmentedVolume = 0.0;
-  double d_metabolicVolume = 0.0;
+  double d_totalLesionGly = 0.0;
   double d_gly1 = 0.0;
   double d_gly2 = 0.0;
   double d_gly3 = 0.0;
@@ -286,12 +286,12 @@ QuantitativeIndicesComputationFilter<TImage, TLabelImage>
   d_averageValue = (sum1+sum2+sum3+sum4) / voxelCount;
   d_rmsValue = std::sqrt(d_rmsValue / voxelCount);
   d_segmentedVolume *= voxelVolume;
-  //d_metabolicVolume = (sum1+sum2+sum3+sum4)*voxelVolume;
+  //d_totalLesionGly = (sum1+sum2+sum3+sum4)*voxelVolume;
   d_gly1 = sum1*voxelVolume;
   d_gly2 = sum2*voxelVolume;
   d_gly3 = sum3*voxelVolume;
   d_gly4 = sum4*voxelVolume;
-  d_metabolicVolume = d_gly1 + d_gly2 + d_gly3 + d_gly4;
+  d_totalLesionGly = d_gly1 + d_gly2 + d_gly3 + d_gly4;
   d_q1 = d_q1/voxelCount;
   d_q2 = d_q2/voxelCount;
   d_q3 = d_q3/voxelCount;
@@ -314,7 +314,7 @@ QuantitativeIndicesComputationFilter<TImage, TLabelImage>
   m_MinimumValue = (PixelType) d_minimumValue;
   m_MaximumValue = (PixelType) d_maximumValue;
   m_SegmentedVolume = (float) d_segmentedVolume;
-  m_MetabolicVolume = d_metabolicVolume;
+  m_TotalLesionGlycolysis = d_totalLesionGly;
   m_StandardDeviation = (PixelType) d_standardDeviation;
   m_Gly1 = d_gly1;
   m_Gly2 = d_gly2;

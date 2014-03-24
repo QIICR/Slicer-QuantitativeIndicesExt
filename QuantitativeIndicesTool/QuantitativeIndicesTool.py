@@ -11,7 +11,7 @@ class QuantitativeIndicesTool:
     parent.title = "Quantitative Indices Tool" # TODO make this more human readable by adding spaces
     parent.categories = ["Quantification"]
     parent.dependencies = []
-    parent.contributors = ["Ethan Ulrich (Univ. of Iowa)"] # replace with "Firstname Lastname (Org)"
+    parent.contributors = ["Ethan Ulrich, Markus Van Tol (Univ. of Iowa)"] # replace with "Firstname Lastname (Org)"
     parent.helpText = """
     This extension calculates simple quantitative features from a grayscale volume and label map.\n
     Once both volumes have been selected, a parameter set must be generated.  Quantitative indices 
@@ -19,8 +19,8 @@ class QuantitativeIndicesTool:
     at different times on the same label value, the previous calculations will be stored.
     """
     parent.acknowledgementText = """
-    This file was originally developed by [] and was partially funded by [].
-""" # replace with organization, grant and thanks.
+    This file was originally developed by Ethan Ulrich and Markus Van Tol (Univ. of Iowa) and was partially funded by NIH National Cancer Institute award U24 CA180918.
+    """ # replace with organization, grant and thanks.
     self.parent = parent
 
     # Add this test to the SelfTest module's list for discovery when the module
@@ -168,7 +168,7 @@ class QuantitativeIndicesToolWidget:
     self.enableScreenshotsFlagCheckBox = qt.QCheckBox()
     self.enableScreenshotsFlagCheckBox.checked = False
     self.enableScreenshotsFlagCheckBox.setToolTip("If checked, take screen shots for tutorials. Use Save Data to write them to disk.")
-    parametersFormLayout.addRow("Enable Screenshots", self.enableScreenshotsFlagCheckBox)
+    #parametersFormLayout.addRow("Enable Screenshots", self.enableScreenshotsFlagCheckBox)
 
     #
     # scale factor for screen shots
@@ -179,7 +179,7 @@ class QuantitativeIndicesToolWidget:
     self.screenshotScaleFactorSliderWidget.maximum = 50.0
     self.screenshotScaleFactorSliderWidget.value = 1.0
     self.screenshotScaleFactorSliderWidget.setToolTip("Set scale factor for the screen shots.")
-    parametersFormLayout.addRow("Screenshot scale factor", self.screenshotScaleFactorSliderWidget)
+    #parametersFormLayout.addRow("Screenshot scale factor", self.screenshotScaleFactorSliderWidget)
 
     #
     # Create large list of quantitative features
@@ -283,9 +283,9 @@ class QuantitativeIndicesToolWidget:
     self.QIFrame5.layout().setMargin(0)
     featuresFormLayout.addRow("", self.QIFrame5)
 
-    self.MTVCheckBox = qt.QCheckBox("MTV", self.QIFrame5)
-    self.QIFrame5.layout().addWidget(self.MTVCheckBox)
-    self.MTVCheckBox.checked = False
+    self.TLGCheckBox = qt.QCheckBox("TLG", self.QIFrame5)
+    self.QIFrame5.layout().addWidget(self.TLGCheckBox)
+    self.TLGCheckBox.checked = False
 
     self.SAMCheckBox = qt.QCheckBox("SAM", self.QIFrame5)
     self.QIFrame5.layout().addWidget(self.SAMCheckBox)
@@ -463,7 +463,7 @@ class QuantitativeIndicesToolWidget:
     self.Gly2CheckBox.checked = True
     self.Gly3CheckBox.checked = True
     self.Gly4CheckBox.checked = True
-    self.MTVCheckBox.checked = True
+    self.TLGCheckBox.checked = True
     self.SAMCheckBox.checked = True
     self.SAMBGCheckBox.checked = True
     self.RMSCheckBox.checked = True
@@ -490,7 +490,7 @@ class QuantitativeIndicesToolWidget:
     self.Gly2CheckBox.checked = False
     self.Gly3CheckBox.checked = False
     self.Gly4CheckBox.checked = False
-    self.MTVCheckBox.checked = False
+    self.TLGCheckBox.checked = False
     self.SAMCheckBox.checked = False
     self.SAMBGCheckBox.checked = False
     self.RMSCheckBox.checked = False
@@ -528,8 +528,8 @@ class QuantitativeIndicesToolWidget:
     slicer.app.processEvents()
 
     logic = QuantitativeIndicesToolLogic(self.grayscaleNode,self.labelNode)
-    enableScreenshotsFlag = self.enableScreenshotsFlagCheckBox.checked
-    screenshotScaleFactor = int(self.screenshotScaleFactorSliderWidget.value)
+    #enableScreenshotsFlag = self.enableScreenshotsFlagCheckBox.checked
+    #screenshotScaleFactor = int(self.screenshotScaleFactorSliderWidget.value)
     labelValue = int(self.labelValueSelector.value)
     # Connections to quantitative feature selections
     meanFlag = self.MeanCheckBox.checked
@@ -548,17 +548,22 @@ class QuantitativeIndicesToolWidget:
     gly2Flag = self.Gly2CheckBox.checked
     gly3Flag = self.Gly3CheckBox.checked
     gly4Flag = self.Gly4CheckBox.checked
-    MTVFlag = self.MTVCheckBox.checked
+    TLGFlag = self.TLGCheckBox.checked
     SAMFlag = self.SAMCheckBox.checked
     SAMBGFlag = self.SAMBGCheckBox.checked
     RMSFlag = self.RMSCheckBox.checked
     PeakFlag = self.PeakCheckBox.checked
     VolumeFlag = self.VolumeCheckBox.checked
      
-    newNode = logic.run(self.grayscaleNode, self.labelNode, None, enableScreenshotsFlag, screenshotScaleFactor, 
+    """newNode = logic.run(self.grayscaleNode, self.labelNode, None, enableScreenshotsFlag, screenshotScaleFactor, 
                         labelValue, meanFlag, varianceFlag, minFlag, maxFlag, quart1Flag, medianFlag, quart3Flag, 
                         upperAdjacentFlag, q1Flag, q2Flag, q3Flag, q4Flag, gly1Flag, gly2Flag, gly3Flag, gly4Flag, 
-                        MTVFlag, SAMFlag, SAMBGFlag, RMSFlag, PeakFlag, VolumeFlag)
+                        TLGFlag, SAMFlag, SAMBGFlag, RMSFlag, PeakFlag, VolumeFlag)"""
+                        
+    newNode = logic.run(self.grayscaleNode, self.labelNode, None, labelValue, meanFlag, varianceFlag, minFlag,
+                        maxFlag, quart1Flag, medianFlag, quart3Flag, upperAdjacentFlag, q1Flag, q2Flag, q3Flag, 
+                        q4Flag, gly1Flag, gly2Flag, gly3Flag, gly4Flag, TLGFlag, SAMFlag, SAMBGFlag, RMSFlag, 
+                        PeakFlag, VolumeFlag)
                         
     newNode.SetName('Temp_CommandLineModule')
 
@@ -696,7 +701,7 @@ class QuantitativeIndicesToolLogic:
     self.info.exec_()
 
 
-  def takeScreenshot(self,name,description,type=-1):
+  """def takeScreenshot(self,name,description,type=-1):
     # show the message even if not taking a screen shot
     self.delayDisplay(description)
 
@@ -732,13 +737,16 @@ class QuantitativeIndicesToolLogic:
     slicer.qMRMLUtils().qImageToVtkImageData(qimage,imageData)
 
     annotationLogic = slicer.modules.annotations.logic()
-    annotationLogic.CreateSnapShot(name, description, type, self.screenshotScaleFactor, imageData)
+    annotationLogic.CreateSnapShot(name, description, type, self.screenshotScaleFactor, imageData)"""
 
 
-  def run(self,inputVolume,labelVolume,cliNode,enableScreenshots=0,screenshotScaleFactor=1,labelValue=1,mean=False,
+  """def run(self,inputVolume,labelVolume,cliNode,enableScreenshots=0,screenshotScaleFactor=1,labelValue=1,mean=False,
           variance=False,minimum=False,maximum=False,quart1=False,median=False,quart3=False,adj=False,
-          q1=False,q2=False,q3=False,q4=False,gly1=False,gly2=False,gly3=False,gly4=False,mtv=False,
-          sam=False,samBG=False,rms=False,peak=False,volume=False):
+          q1=False,q2=False,q3=False,q4=False,gly1=False,gly2=False,gly3=False,gly4=False,tlg=False,
+          sam=False,samBG=False,rms=False,peak=False,volume=False):"""
+  def run(self,inputVolume,labelVolume,cliNode,labelValue=1,mean=False,variance=False,minimum=False,maximum=False,
+          quart1=False,median=False,quart3=False,adj=False,q1=False,q2=False,q3=False,q4=False,gly1=False,
+          gly2=False,gly3=False,gly4=False,tlg=False,sam=False,samBG=False,rms=False,peak=False,volume=False):
     """
     Run the actual algorithm
     """
@@ -780,8 +788,8 @@ class QuantitativeIndicesToolLogic:
       parameters['Glycolysis_Q3'] = 'true'
     if(gly4):
       parameters['Glycolysis_Q4'] = 'true'
-    if(mtv):
-      parameters['MTV'] = 'true'
+    if(tlg):
+      parameters['TLG'] = 'true'
     if(sam):
       parameters['SAM'] = 'true'
     if(samBG):

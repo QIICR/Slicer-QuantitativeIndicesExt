@@ -41,7 +41,7 @@ int main( int argc, char * argv[] )
   if(!Median){writeFile << "Median_s = --" << endl;};
   if(!Third_Quartile){writeFile << "Third_Quartile_s = --" << endl;};
   if(!Upper_Adjacent){writeFile << "Upper_Adjacent_s = --" << endl;};
-  if(!MTV){writeFile << "MTV_s = --" << endl;};
+  if(!TLG){writeFile << "TLG_s = --" << endl;};
   if(!Glycolysis_Q1){writeFile << "Glycolysis_Q1_s = --" << endl;};
   if(!Glycolysis_Q2){writeFile << "Glycolysis_Q2_s = --" << endl;};
   if(!Glycolysis_Q3){writeFile << "Glycolysis_Q3_s = --" << endl;};
@@ -62,7 +62,7 @@ int main( int argc, char * argv[] )
   qiCompute->Update();
 
 
-  if(Mean||RMS||Variance||Max||Min||Volume||MTV||Glycolysis_Q1||Glycolysis_Q2||Glycolysis_Q3||Glycolysis_Q4||Q1_Distribution||Q2_Distribution||Q3_Distribution||Q4_Distribution)
+  if(Mean||RMS||Variance||Max||Min||Volume||TLG||Glycolysis_Q1||Glycolysis_Q2||Glycolysis_Q3||Glycolysis_Q4||Q1_Distribution||Q2_Distribution||Q3_Distribution||Q4_Distribution)
     {
       qiCompute->CalculateMean();
       if(Mean){
@@ -90,9 +90,9 @@ int main( int argc, char * argv[] )
         writeFile << "Volume_s = " << (double) qiCompute->GetSegmentedVolume() << endl;
         cout << "Volume: " << (double) qiCompute->GetSegmentedVolume() << endl;
       }
-      if(MTV){
-        writeFile << "MTV_s = " << (double) qiCompute->GetMetabolicVolume() << endl;
-        cout << "MTV: " << (double) qiCompute->GetMetabolicVolume() << endl;
+      if(TLG){
+        writeFile << "TLG_s = " << (double) qiCompute->GetTotalLesionGlycolysis() << endl;
+        cout << "TLG: " << (double) qiCompute->GetTotalLesionGlycolysis() << endl;
       }
       if(Glycolysis_Q1){
         writeFile << "Glycolysis_Q1_s = " << (double) qiCompute->GetGly1() << endl;

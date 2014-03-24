@@ -112,38 +112,38 @@
       <default>false</default>
     </boolean>
     <boolean>
-      <name>MTV</name>
-      <label>MTV</label>
-      <longflag>--mtv</longflag>
-      <description><![CDATA[Metabolic tumor volume]]></description>
+      <name>TLG</name>
+      <label>TLG</label>
+      <longflag>--tlg</longflag>
+      <description><![CDATA[Total lesion glycolysis]]></description>
       <default>false</default>
     </boolean>
     <boolean>
       <name>Glycolysis_Q1</name>
       <label>Glycolysis Q1</label>
       <longflag>--gly1</longflag>
-      <description><![CDATA[Metabolic tumor volume in 1st quarter of distribution]]></description>
+      <description><![CDATA[Lesion glycolysis calculated from 1st quarter of distribution]]></description>
       <default>false</default>
     </boolean>
     <boolean>
       <name>Glycolysis_Q2</name>
       <label>Glycolysis Q2</label>
       <longflag>--gly2</longflag>
-      <description><![CDATA[Metabolic tumor volume in 2nd quarter of distribution]]></description>
+      <description><![CDATA[Lesion glycolysis calculated from 2nd quarter of distribution]]></description>
       <default>false</default>
     </boolean>
     <boolean>
       <name>Glycolysis_Q3</name>
       <label>Glycolysis Q3</label>
       <longflag>--gly3</longflag>
-      <description><![CDATA[Metabolic tumor volume in 3rd quarter of distribution]]></description>
+      <description><![CDATA[Lesion glycolysis calculated from 3rd quarter of distribution]]></description>
       <default>false</default>
     </boolean>
     <boolean>
       <name>Glycolysis_Q4</name>
       <label>Glycolysis Q4</label>
       <longflag>--gly4</longflag>
-      <description><![CDATA[Metabolic tumor volume in 4th quarter of distribution]]></description>
+      <description><![CDATA[Lesion glycolysis calculated from 4th quarter of distribution]]></description>
       <default>false</default>
     </boolean>
     <boolean>
@@ -260,34 +260,34 @@
       <description><![CDATA[Upper adjacent value in region of interest]]></description>
     </string>
     <string>
-      <name>MTV_s</name>
-      <label>MTV</label>
+      <name>TLG_s</name>
+      <label>TLG</label>
       <channel>output</channel>
-      <description><![CDATA[Metabolic tumor volume]]></description>
+      <description><![CDATA[Total lesion glycolysis]]></description>
     </string>
     <string>
       <name>Glycolysis_Q1_s</name>
       <label>Glycolysis Q1</label>
       <channel>output</channel>
-      <description><![CDATA[Metabolic tumor volume in 1st quarter of distribution]]></description>
+      <description><![CDATA[Lesion glycolysis calculated from 1st quarter of distribution]]></description>
     </string>
     <string>
       <name>Glycolysis_Q2_s</name>
       <label>Glycolysis Q2</label>
       <channel>output</channel>
-      <description><![CDATA[Metabolic tumor volume in 2nd quarter of distribution]]></description>
+      <description><![CDATA[Lesion glycolysis calculated from 2nd quarter of distribution]]></description>
     </string>
     <string>
       <name>Glycolysis_Q3_s</name>
       <label>Glycolysis Q3</label>
       <channel>output</channel>
-      <description><![CDATA[Metabolic tumor volume in 3rd quarter of distribution]]></description>
+      <description><![CDATA[Lesion glycolysis calculated from 3rd quarter of distribution]]></description>
     </string>
     <string>
       <name>Glycolysis_Q4_s</name>
       <label>Glycolysis Q4</label>
       <channel>output</channel>
-      <description><![CDATA[Metabolic tumor volume in 4th quarter of distribution]]></description>
+      <description><![CDATA[Lesion glycolysis calculated from 4th quarter of distribution]]></description>
     </string>
     <string>
       <name>Q1_Distribution_s</name>

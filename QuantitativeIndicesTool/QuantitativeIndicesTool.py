@@ -312,14 +312,28 @@ class QuantitativeIndicesToolWidget:
     self.VolumeCheckBox = qt.QCheckBox("Volume", self.QIFrame6)
     self.QIFrame6.layout().addWidget(self.VolumeCheckBox)
     self.VolumeCheckBox.checked = False
-
+    
+    self.Percentile80CheckBox = qt.QCheckBox("80th Percentile", self.QIFrame6)
+    self.QIFrame6.layout().addWidget(self.Percentile80CheckBox)
+    self.Percentile80CheckBox.checked = False
+    
+    self.Percentile95CheckBox = qt.QCheckBox("95th Percentile", self.QIFrame6)
+    self.QIFrame6.layout().addWidget(self.Percentile95CheckBox)
+    self.Percentile95CheckBox.checked = False
+    
+    self.QIFrame7 = qt.QFrame(self.parent)
+    self.QIFrame7.setLayout(qt.QHBoxLayout())
+    self.QIFrame7.layout().setSpacing(0)
+    self.QIFrame7.layout().setMargin(0)
+    featuresFormLayout.addRow("", self.QIFrame7)
+   
     self.selectAllButton = qt.QPushButton("Select All")
     self.selectAllButton.toolTip = "Select all quantitative features." 
-    self.QIFrame6.layout().addWidget(self.selectAllButton)
+    self.QIFrame7.layout().addWidget(self.selectAllButton)
     
     self.deselectAllButton = qt.QPushButton("Deselect All")
     self.deselectAllButton.toolTip = "Deselect all quantitative features." 
-    self.QIFrame6.layout().addWidget(self.deselectAllButton)
+    self.QIFrame7.layout().addWidget(self.deselectAllButton)
 
     #
     # Calculate Button
@@ -469,6 +483,8 @@ class QuantitativeIndicesToolWidget:
     self.RMSCheckBox.checked = True
     self.PeakCheckBox.checked = True
     self.VolumeCheckBox.checked = True
+    self.Percentile80CheckBox.checked = True
+    self.Percentile95CheckBox.checked = True
     
 
   def onDeselectAllButton(self):
@@ -496,6 +512,8 @@ class QuantitativeIndicesToolWidget:
     self.RMSCheckBox.checked = False
     self.PeakCheckBox.checked = False
     self.VolumeCheckBox.checked = False
+    self.Percentile80CheckBox.checked = False
+    self.Percentile95CheckBox.checked = False
 
 
   def cleanup(self):
@@ -554,6 +572,8 @@ class QuantitativeIndicesToolWidget:
     RMSFlag = self.RMSCheckBox.checked
     PeakFlag = self.PeakCheckBox.checked
     VolumeFlag = self.VolumeCheckBox.checked
+    percentile80Flag = self.Percentile80CheckBox.checked
+    percentile95Flag = self.Percentile95CheckBox.checked
      
     """newNode = logic.run(self.grayscaleNode, self.labelNode, None, enableScreenshotsFlag, screenshotScaleFactor, 
                         labelValue, meanFlag, varianceFlag, minFlag, maxFlag, quart1Flag, medianFlag, quart3Flag, 
@@ -563,7 +583,7 @@ class QuantitativeIndicesToolWidget:
     newNode = logic.run(self.grayscaleNode, self.labelNode, None, labelValue, meanFlag, varianceFlag, minFlag,
                         maxFlag, quart1Flag, medianFlag, quart3Flag, upperAdjacentFlag, q1Flag, q2Flag, q3Flag, 
                         q4Flag, gly1Flag, gly2Flag, gly3Flag, gly4Flag, TLGFlag, SAMFlag, SAMBGFlag, RMSFlag, 
-                        PeakFlag, VolumeFlag)
+                        PeakFlag, VolumeFlag, percentile80Flag, percentile95Flag)
                         
     newNode.SetName('Temp_CommandLineModule')
 
@@ -580,7 +600,8 @@ class QuantitativeIndicesToolWidget:
     labelValue = int(self.labelValueSelector.value)
     oldNode = self.cliNodes[labelValue]
     resultText = ''
-    for i in xrange(0,22):
+    #for i in xrange(0,22):
+    for i in xrange(0,24):
       newResult = newNode.GetParameterDefault(2,i)
       if (newResult != '--'):
         oldResult = oldNode.GetParameterDefault(2,i)
@@ -746,7 +767,8 @@ class QuantitativeIndicesToolLogic:
           sam=False,samBG=False,rms=False,peak=False,volume=False):"""
   def run(self,inputVolume,labelVolume,cliNode,labelValue=1,mean=False,variance=False,minimum=False,maximum=False,
           quart1=False,median=False,quart3=False,adj=False,q1=False,q2=False,q3=False,q4=False,gly1=False,
-          gly2=False,gly3=False,gly4=False,tlg=False,sam=False,samBG=False,rms=False,peak=False,volume=False):
+          gly2=False,gly3=False,gly4=False,tlg=False,sam=False,samBG=False,rms=False,peak=False,volume=False,
+          percentile80=False,percentile95=False):
     """
     Run the actual algorithm
     """
@@ -772,6 +794,10 @@ class QuantitativeIndicesToolLogic:
       parameters['Third_Quartile'] = 'true'
     if(adj):
       parameters['Upper_Adjacent'] = 'true'
+    if(percentile80):
+      parameters['Eightieth'] = 'true'
+    if(percentile95):
+      parameters['NinetyFifth'] = 'true'
     if(q1):
       parameters['Q1_Distribution'] = 'true'
     if(q2):
@@ -800,6 +826,7 @@ class QuantitativeIndicesToolLogic:
       parameters['Peak'] = 'true'
     if(volume):
       parameters['Volume'] = 'true'
+    
       
     newCLINode = slicer.cli.run(qiModule,cliNode,parameters,wait_for_completion=True)
     

@@ -112,6 +112,20 @@
       <default>false</default>
     </boolean>
     <boolean>
+      <name>Eightieth</name>
+      <label>80th Percentile</label>
+      <longflag>--eightieth</longflag>
+      <description><![CDATA[80th percentile in region of interest]]></description>
+      <default>false</default>
+    </boolean>
+    <boolean>
+      <name>NinetyFifth</name>
+      <label>95th Percentile</label>
+      <longflag>--ninetyFifth</longflag>
+      <description><![CDATA[95th percentile in region of interest]]></description>
+      <default>false</default>
+    </boolean>
+    <boolean>
       <name>TLG</name>
       <label>TLG</label>
       <longflag>--tlg</longflag>
@@ -258,6 +272,18 @@
       <label>Upper Adjacent</label>
       <channel>output</channel>
       <description><![CDATA[Upper adjacent value in region of interest]]></description>
+    </string>
+    <string>
+      <name>Eightieth_s</name>
+      <label>80th Percentile</label>
+      <channel>output</channel>
+      <description><![CDATA[80th percentile in region of interest]]></description>
+    </string>
+    <string>
+      <name>NinetyFifth_s</name>
+      <label>95th Percentile</label>
+      <channel>output</channel>
+      <description><![CDATA[95th percentile in region of interest]]></description>
     </string>
     <string>
       <name>TLG_s</name>

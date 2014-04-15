@@ -41,6 +41,8 @@ int main( int argc, char * argv[] )
   if(!Median){writeFile << "Median_s = --" << endl;};
   if(!Third_Quartile){writeFile << "Third_Quartile_s = --" << endl;};
   if(!Upper_Adjacent){writeFile << "Upper_Adjacent_s = --" << endl;};
+  if(!Eightieth){writeFile << "Eightieth_s = --" << endl;};
+  if(!NinetyFifth){writeFile << "NinetyFifth_s = --" << endl;};
   if(!TLG){writeFile << "TLG_s = --" << endl;};
   if(!Glycolysis_Q1){writeFile << "Glycolysis_Q1_s = --" << endl;};
   if(!Glycolysis_Q2){writeFile << "Glycolysis_Q2_s = --" << endl;};
@@ -128,7 +130,7 @@ int main( int argc, char * argv[] )
       }
     }
 
-  if(First_Quartile || Median || Third_Quartile || Upper_Adjacent)
+  if(First_Quartile || Median || Third_Quartile || Upper_Adjacent || Eightieth || NinetyFifth)
     {
       qiCompute->CalculateQuartiles();
       if(First_Quartile){
@@ -146,6 +148,14 @@ int main( int argc, char * argv[] )
       if(Upper_Adjacent){
         writeFile << "Upper_Adjacent_s = " << (double) qiCompute->GetUpperAdjacentValue() << endl;
         cout << "Upper Adjacent: " << (double) qiCompute->GetUpperAdjacentValue() << endl;
+      }
+      if(Eightieth){
+        writeFile << "Eightieth_s = " << (double) qiCompute->GetPercentile80Value() << endl;
+        cout << "80th Percentile: " << (double) qiCompute->GetPercentile80Value() << endl;
+      }
+      if(NinetyFifth){
+        writeFile << "NinetyFifth_s = " << (double) qiCompute->GetPercentile95Value() << endl;
+        cout << "95th Percentile: " << (double) qiCompute->GetPercentile95Value() << endl;
       }
     }
 

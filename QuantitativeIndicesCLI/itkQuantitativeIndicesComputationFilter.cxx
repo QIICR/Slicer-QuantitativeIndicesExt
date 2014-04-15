@@ -345,6 +345,8 @@ QuantitativeIndicesComputationFilter<TImage, TLabelImage>
   double d_firstQuartileValue = 0.0;
   double d_thirdQuartileValue = 0.0;
   double d_upperAdjacentValue = 0.0;
+  double d_percentile80Value = 0.0;
+  double d_percentile95Value = 0.0;
   //double d_maximumValue = itk::NumericTraits<double>::min();
 
   typedef itk::ImageRegionConstIterator<ImageType>  InputIteratorType;
@@ -405,6 +407,10 @@ QuantitativeIndicesComputationFilter<TImage, TLabelImage>
 		{ d_medianValue = (*listIt);  }
 		if (list_progress == (int)(segmentedValuesSize*0.75))
 		{ d_thirdQuartileValue = (*listIt); }
+		if (list_progress == (int)(segmentedValuesSize*0.80))
+		{ d_percentile80Value = (*listIt); }
+		if (list_progress == (int)(segmentedValuesSize*0.95))
+		{ d_percentile95Value = (*listIt); }
 		listIt++;
 	}
 
@@ -427,6 +433,8 @@ QuantitativeIndicesComputationFilter<TImage, TLabelImage>
   m_FirstQuartileValue = (PixelType) d_firstQuartileValue;
   m_ThirdQuartileValue = (PixelType) d_thirdQuartileValue;
   m_UpperAdjacentValue = (PixelType) d_upperAdjacentValue;
+  m_Percentile80Value = (PixelType) d_percentile80Value;
+  m_Percentile95Value = (PixelType) d_percentile95Value;
 
 }
 

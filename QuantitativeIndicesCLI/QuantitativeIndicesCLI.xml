@@ -8,6 +8,16 @@
   <license/>
   <contributor>Ethan Ulrich</contributor>
   <acknowledgements/>
+  <parameters advanced='true'>
+    <label>Software Info</label>
+    <description><![CDATA[Information about software version]]></description>
+    <string>
+      <name>Software_Version</name>
+      <label>Software Version</label>
+      <channel>output</channel>
+      <description><![CDATA[Repository version of Quantitative Indices Extension (must run module)]]></description>
+    </string>
+  </parameters>
   <parameters>
     <label>Input Images</label>
     <description><![CDATA[Input images]]></description>

@@ -6,6 +6,9 @@
 
 #include "itkQuantitativeIndicesComputationFilter.h"
 
+//versioning info
+#include "vtkQuantitativeIndicesExtVersionConfigure.h"
+
 using namespace std;
 
 int main( int argc, char * argv[] )
@@ -178,6 +181,8 @@ int main( int argc, char * argv[] )
       writeFile << "Peak_s = " << (double) qiCompute->GetPeakValue() << endl;
       cout << "Peak: " << (double) qiCompute->GetPeakValue() << endl;
     }
+    
+  writeFile << "Software_Version = " << QuantitativeIndicesExt_WC_REVISION << endl;
 
   writeFile.close();
 

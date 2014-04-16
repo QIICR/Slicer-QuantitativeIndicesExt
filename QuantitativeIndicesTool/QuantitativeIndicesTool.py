@@ -602,12 +602,12 @@ class QuantitativeIndicesToolWidget:
     resultText = ''
     #for i in xrange(0,22):
     for i in xrange(0,24):
-      newResult = newNode.GetParameterDefault(2,i)
+      newResult = newNode.GetParameterDefault(3,i)
       if (newResult != '--'):
-        oldResult = oldNode.GetParameterDefault(2,i)
-        feature = oldNode.GetParameterName(2,i)
+        oldResult = oldNode.GetParameterDefault(3,i)
+        feature = oldNode.GetParameterName(3,i)
         if (oldResult == '--'):
-          flagName = oldNode.GetParameterName(1,i)
+          flagName = oldNode.GetParameterName(2,i)
           oldNode.SetParameterAsString(feature,newResult)
           oldNode.SetParameterAsString(flagName,'true')
         feature = feature.replace('_s',':\t')
@@ -616,6 +616,8 @@ class QuantitativeIndicesToolWidget:
           feature = feature + '\t'
         resultText = resultText + feature + newResult + '\n'
     self.resultsFrameLabel.setText(resultText)
+    # TODO find a better way to retrieve the software revision
+    self.software_version = newNode.GetParameterDefault(0,0)
     slicer.mrmlScene.RemoveNode(newNode)
         
 

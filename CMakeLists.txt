@@ -15,6 +15,13 @@ find_package(Slicer REQUIRED)
 include(${Slicer_USE_FILE})
 
 #-----------------------------------------------------------------------------
+SlicerMacroExtractRepositoryInfo(VAR_PREFIX QuantitativeIndicesExt)
+configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/CMake/vtkQuantitativeIndicesExtVersionConfigure.h.in
+    ${CMAKE_CURRENT_BINARY_DIR}/vtkQuantitativeIndicesExtVersionConfigure.h
+    )
+
+#-----------------------------------------------------------------------------
 add_subdirectory(QuantitativeIndicesCLI)
 add_subdirectory(QuantitativeIndicesTool)
 

@@ -44,8 +44,6 @@ int main( int argc, char * argv[] )
   if(!Median){writeFile << "Median_s = --" << endl;};
   if(!Third_Quartile){writeFile << "Third_Quartile_s = --" << endl;};
   if(!Upper_Adjacent){writeFile << "Upper_Adjacent_s = --" << endl;};
-  if(!Eightieth){writeFile << "Eightieth_s = --" << endl;};
-  if(!NinetyFifth){writeFile << "NinetyFifth_s = --" << endl;};
   if(!TLG){writeFile << "TLG_s = --" << endl;};
   if(!Glycolysis_Q1){writeFile << "Glycolysis_Q1_s = --" << endl;};
   if(!Glycolysis_Q2){writeFile << "Glycolysis_Q2_s = --" << endl;};
@@ -79,9 +77,9 @@ int main( int argc, char * argv[] )
         cout << "RMS: " << (double) qiCompute->GetRMSValue() << endl;
       }
       if(Variance){
-        double var = (double) qiCompute->GetStandardDeviation();
-        writeFile << "Variance_s = " << var*var << endl;
-        cout << "Variance: " << var*var << endl;
+        double var = (double) qiCompute->GetVariance();
+        writeFile << "Variance_s = " << var << endl;
+        cout << "Variance: " << var << endl;
       }
       if(Max){
         writeFile << "Max_s = " << (double) qiCompute->GetMaximumValue() << endl;
@@ -92,28 +90,28 @@ int main( int argc, char * argv[] )
         cout << "Min: " << (double) qiCompute->GetMinimumValue() << endl;
       }
       if(Volume){
-        writeFile << "Volume_s = " << (double) qiCompute->GetSegmentedVolume() << endl;
-        cout << "Volume: " << (double) qiCompute->GetSegmentedVolume() << endl;
+        writeFile << "Volume_s = " << (double) qiCompute->GetSegmentedVolume() * 0.001 << endl;
+        cout << "Volume: " << (double) qiCompute->GetSegmentedVolume() * 0.001 << endl;
       }
       if(TLG){
-        writeFile << "TLG_s = " << (double) qiCompute->GetTotalLesionGlycolysis() << endl;
-        cout << "TLG: " << (double) qiCompute->GetTotalLesionGlycolysis() << endl;
+        writeFile << "TLG_s = " << (double) qiCompute->GetTotalLesionGlycolysis() * 0.001 << endl;
+        cout << "TLG: " << (double) qiCompute->GetTotalLesionGlycolysis() * 0.001 << endl;
       }
       if(Glycolysis_Q1){
-        writeFile << "Glycolysis_Q1_s = " << (double) qiCompute->GetGly1() << endl;
-        cout << "Glycolysis Q1: " << (double) qiCompute->GetGly1() << endl;
+        writeFile << "Glycolysis_Q1_s = " << (double) qiCompute->GetGly1() * 0.001 << endl;
+        cout << "Glycolysis Q1: " << (double) qiCompute->GetGly1() * 0.001 << endl;
       }
       if(Glycolysis_Q2){
-        writeFile << "Glycolysis_Q2_s = " << (double) qiCompute->GetGly2() << endl;
-        cout << "Glycolysis Q2: " << (double) qiCompute->GetGly2() << endl;
+        writeFile << "Glycolysis_Q2_s = " << (double) qiCompute->GetGly2() * 0.001 << endl;
+        cout << "Glycolysis Q2: " << (double) qiCompute->GetGly2() * 0.001 << endl;
       }
       if(Glycolysis_Q3){
-        writeFile << "Glycolysis_Q3_s = " << (double) qiCompute->GetGly3() << endl;
-        cout << "Glycolysis Q3: " << (double) qiCompute->GetGly3() << endl;
+        writeFile << "Glycolysis_Q3_s = " << (double) qiCompute->GetGly3() * 0.001 << endl;
+        cout << "Glycolysis Q3: " << (double) qiCompute->GetGly3() * 0.001 << endl;
       }
       if(Glycolysis_Q4){
-        writeFile << "Glycolysis_Q4_s = " << (double) qiCompute->GetGly4() << endl;
-        cout << "Glycolysis Q4: " << (double) qiCompute->GetGly4() << endl;
+        writeFile << "Glycolysis_Q4_s = " << (double) qiCompute->GetGly4() * 0.001 << endl;
+        cout << "Glycolysis Q4: " << (double) qiCompute->GetGly4() * 0.001 << endl;
       }
       if(Q1_Distribution){
         writeFile << "Q1_Distribution_s = " << (double) qiCompute->GetQ1() << endl;
@@ -133,7 +131,7 @@ int main( int argc, char * argv[] )
       }
     }
 
-  if(First_Quartile || Median || Third_Quartile || Upper_Adjacent || Eightieth || NinetyFifth)
+  if(First_Quartile || Median || Third_Quartile || Upper_Adjacent)
     {
       qiCompute->CalculateQuartiles();
       if(First_Quartile){
@@ -152,22 +150,14 @@ int main( int argc, char * argv[] )
         writeFile << "Upper_Adjacent_s = " << (double) qiCompute->GetUpperAdjacentValue() << endl;
         cout << "Upper Adjacent: " << (double) qiCompute->GetUpperAdjacentValue() << endl;
       }
-      if(Eightieth){
-        writeFile << "Eightieth_s = " << (double) qiCompute->GetPercentile80Value() << endl;
-        cout << "80th Percentile: " << (double) qiCompute->GetPercentile80Value() << endl;
-      }
-      if(NinetyFifth){
-        writeFile << "NinetyFifth_s = " << (double) qiCompute->GetPercentile95Value() << endl;
-        cout << "95th Percentile: " << (double) qiCompute->GetPercentile95Value() << endl;
-      }
     }
 
   if(SAM||SAM_Background)
     {
       qiCompute->CalculateSAM();
       if(SAM){
-        writeFile << "SAM_s = " << (double) qiCompute->GetSAMValue() << endl;
-        cout << "SAM: " << (double) qiCompute->GetSAMValue() << endl;
+        writeFile << "SAM_s = " << (double) qiCompute->GetSAMValue() * 0.001 << endl;
+        cout << "SAM: " << (double) qiCompute->GetSAMValue() * 0.001 << endl;
       }
       if(SAM_Background){
         writeFile << "SAM_Background_s = " << (double) qiCompute->GetSAMBackground() << endl;

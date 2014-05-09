@@ -58,9 +58,7 @@ public:
   itkGetMacro(FirstQuartileValue, PixelType);
   itkGetMacro(ThirdQuartileValue, PixelType);
   itkGetMacro(UpperAdjacentValue, PixelType);
-  itkGetMacro(Percentile80Value, PixelType);
-  itkGetMacro(Percentile95Value, PixelType);
-  itkGetMacro(StandardDeviation, PixelType);
+  itkGetMacro(Variance, PixelType);
   itkGetMacro(SAMValue, PixelType);
   itkGetMacro(SAMBackground, PixelType);
   itkGetMacro(Gly1, double);
@@ -132,12 +130,8 @@ private:
   PixelType m_ThirdQuartileValue;
   /** The upper adjacent value */
   PixelType m_UpperAdjacentValue;
-  /** The 95th percentile value.  */
-  PixelType m_Percentile95Value;
-  /** The 80th percentile value.  */
-  PixelType m_Percentile80Value;
-  /** The standard deviation of the segmented values. */
-  PixelType m_StandardDeviation;
+  /** The variance of the segmented values. */
+  PixelType m_Variance;
   /** The standard added metabolic activity. */
   PixelType m_SAMValue;
   /** SAM mean background. */

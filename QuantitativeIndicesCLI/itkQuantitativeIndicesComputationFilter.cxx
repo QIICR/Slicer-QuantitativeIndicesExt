@@ -163,7 +163,7 @@ QuantitativeIndicesComputationFilter<TImage, TLabelImage>
 /*
 CalculateMean
 Actually runs the calculations to determine:
-Minimum, Maximum, Average, RMS, Standard Deviation,
+Minimum, Maximum, Average, RMS, Variance,
 Segmented Volume, and Lesion Glycolysis.
 
 */
@@ -178,7 +178,7 @@ QuantitativeIndicesComputationFilter<TImage, TLabelImage>
   double d_minimumValue = itk::NumericTraits<double>::max();
   double d_averageValue = 0.0;
   double d_rmsValue = 0.0;
-  double d_standardDeviation = 0.0;
+  double d_variance = 0.0;
   double d_segmentedVolume = 0.0;
   double d_totalLesionGly = 0.0;
   double d_gly1 = 0.0;
@@ -300,12 +300,11 @@ QuantitativeIndicesComputationFilter<TImage, TLabelImage>
 	std::list<double>::iterator listIt = segmentedValues.begin();
 	while (listIt != segmentedValues.end())
 	{
-		d_standardDeviation += ((*listIt)-d_averageValue) * ((*listIt)-d_averageValue);
+		d_variance += ((*listIt)-d_averageValue) * ((*listIt)-d_averageValue);
 		listIt++;
 	}
 
-  d_standardDeviation /= (voxelCount);
-  d_standardDeviation = std::sqrt(d_standardDeviation);
+  d_variance /= (voxelCount);
 
 
   //Set the class variables to the values we've determined.
@@ -315,7 +314,7 @@ QuantitativeIndicesComputationFilter<TImage, TLabelImage>
   m_MaximumValue = (PixelType) d_maximumValue;
   m_SegmentedVolume = (float) d_segmentedVolume;
   m_TotalLesionGlycolysis = d_totalLesionGly;
-  m_StandardDeviation = (PixelType) d_standardDeviation;
+  m_Variance = (PixelType) d_variance;
   m_Gly1 = d_gly1;
   m_Gly2 = d_gly2;
   m_Gly3 = d_gly3;
@@ -345,8 +344,6 @@ QuantitativeIndicesComputationFilter<TImage, TLabelImage>
   double d_firstQuartileValue = 0.0;
   double d_thirdQuartileValue = 0.0;
   double d_upperAdjacentValue = 0.0;
-  double d_percentile80Value = 0.0;
-  double d_percentile95Value = 0.0;
   //double d_maximumValue = itk::NumericTraits<double>::min();
 
   typedef itk::ImageRegionConstIterator<ImageType>  InputIteratorType;
@@ -407,10 +404,6 @@ QuantitativeIndicesComputationFilter<TImage, TLabelImage>
 		{ d_medianValue = (*listIt);  }
 		if (list_progress == (int)(segmentedValuesSize*0.75))
 		{ d_thirdQuartileValue = (*listIt); }
-		if (list_progress == (int)(segmentedValuesSize*0.80))
-		{ d_percentile80Value = (*listIt); }
-		if (list_progress == (int)(segmentedValuesSize*0.95))
-		{ d_percentile95Value = (*listIt); }
 		listIt++;
 	}
 
@@ -433,8 +426,6 @@ QuantitativeIndicesComputationFilter<TImage, TLabelImage>
   m_FirstQuartileValue = (PixelType) d_firstQuartileValue;
   m_ThirdQuartileValue = (PixelType) d_thirdQuartileValue;
   m_UpperAdjacentValue = (PixelType) d_upperAdjacentValue;
-  m_Percentile80Value = (PixelType) d_percentile80Value;
-  m_Percentile95Value = (PixelType) d_percentile95Value;
 
 }
 

@@ -375,7 +375,7 @@ class QuantitativeIndicesToolWidget:
     if bool(self.labelNode):
       #find the correct number of label values
       stataccum = vtk.vtkImageAccumulate()
-      stataccum.SetInput(self.labelNode.GetImageData())
+      stataccum.SetInputData(self.labelNode.GetImageData())
       stataccum.Update()
       lo = int(stataccum.GetMin()[0])
       hi = int(stataccum.GetMax()[0])

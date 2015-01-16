@@ -11,7 +11,7 @@ class QuantitativeIndicesTool:
     parent.title = "Quantitative Indices Tool" # TODO make this more human readable by adding spaces
     parent.categories = ["Quantification"]
     parent.dependencies = []
-    parent.contributors = ["Ethan Ulrich, Markus Van Tol (Univ. of Iowa)"] # replace with "Firstname Lastname (Org)"
+    parent.contributors = ["Ethan Ulrich (University of Iowa), Andrey Fedorov (SPL), Markus van Tol (University of Iowa), Christian Bauer (University of Iowa), Reinhard Beichel (University of Iowa), John Buatti (University of Iowa)"] # replace with "Firstname Lastname (Org)"
     parent.helpText = """
     This extension calculates simple quantitative features from a grayscale volume and label map.\n
     Once both volumes have been selected, a parameter set must be generated.  Quantitative indices 
@@ -19,7 +19,7 @@ class QuantitativeIndicesTool:
     at different times on the same label value, the previous calculations will be stored.
     """
     parent.acknowledgementText = """
-    This file was originally developed by Ethan Ulrich and Markus Van Tol (Univ. of Iowa) and was partially funded by NIH National Cancer Institute award U24 CA180918.
+    This work is funded in part by Quantitative Imaging to Assess Response in Cancer Therapy Trials NIH grant U01-CA140206 and Quantitative Image Informatics for Cancer Research (QIICR) NIH grant U24 CA180918.
     """ # replace with organization, grant and thanks.
     self.parent = parent
 

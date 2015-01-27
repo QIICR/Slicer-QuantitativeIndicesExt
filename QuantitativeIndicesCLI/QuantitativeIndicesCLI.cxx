@@ -2,6 +2,7 @@
 
 #include "itkImage.h"
 #include "itkImageFileReader.h"
+#include "itkResampleImageFilter.h"
 #include <iostream>
 
 #include "itkQuantitativeIndicesComputationFilter.h"
@@ -31,6 +32,14 @@ int main( int argc, char * argv[] )
   labelImage->SetFileName( Label_Image );
   ptImage->Update();
   labelImage->Update();
+  
+  //resample the image to the resolution of the label
+  typedef itk::ResampleImageFilter<ImageType, ImageType> ResamplerType;
+  ResamplerType::Pointer resampler = ResamplerType::New();
+  resampler->SetInput(ptImage->GetOutput());
+  resampler->UseReferenceImageOn();
+  resampler->SetReferenceImage(labelImage->GetOutput());
+  resampler->UpdateLargestPossibleRegion();
 
   ofstream writeFile;
   writeFile.open( returnParameterFile.c_str() );
@@ -59,7 +68,8 @@ int main( int argc, char * argv[] )
 
   typedef itk::QuantitativeIndicesComputationFilter<ImageType,LabelImageType> QIFilterType;
   QIFilterType::Pointer qiCompute = QIFilterType::New();
-  qiCompute->SetInputImage(ptImage->GetOutput());
+  //qiCompute->SetInputImage(ptImage->GetOutput());
+  qiCompute->SetInputImage(resampler->GetOutput());
   qiCompute->SetInputLabelImage(labelImage->GetOutput());
   qiCompute->SetCurrentLabel( (int)Label_Value );
   qiCompute->Update();

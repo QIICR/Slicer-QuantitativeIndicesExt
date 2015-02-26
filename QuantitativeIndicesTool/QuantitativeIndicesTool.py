@@ -184,16 +184,16 @@ class QuantitativeIndicesToolWidget:
     #
     # Create large list of quantitative features
     #
-    featuresCollapsibleButton = ctk.ctkCollapsibleButton()
-    featuresCollapsibleButton.text = "Features to Calculate"
-    self.layout.addWidget(featuresCollapsibleButton)
-    featuresFormLayout = qt.QFormLayout(featuresCollapsibleButton)
+    self.featuresCollapsibleButton = ctk.ctkCollapsibleButton()
+    self.featuresCollapsibleButton.text = "Features to Calculate"
+    self.layout.addWidget(self.featuresCollapsibleButton)
+    self.featuresFormLayout = qt.QFormLayout(self.featuresCollapsibleButton)
 
     self.QIFrame1 = qt.QFrame(self.parent)
     self.QIFrame1.setLayout(qt.QHBoxLayout())
     self.QIFrame1.layout().setSpacing(0)
     self.QIFrame1.layout().setMargin(0)
-    featuresFormLayout.addRow("", self.QIFrame1)
+    self.featuresFormLayout.addRow("", self.QIFrame1)
 
     self.MeanCheckBox = qt.QCheckBox("Mean", self.QIFrame1)
     self.QIFrame1.layout().addWidget(self.MeanCheckBox)
@@ -215,7 +215,7 @@ class QuantitativeIndicesToolWidget:
     self.QIFrame2.setLayout(qt.QHBoxLayout())
     self.QIFrame2.layout().setSpacing(0)
     self.QIFrame2.layout().setMargin(0)
-    featuresFormLayout.addRow("", self.QIFrame2)
+    self.featuresFormLayout.addRow("", self.QIFrame2)
 
     self.Quart1CheckBox = qt.QCheckBox("1st Quartile", self.QIFrame2)
     self.QIFrame2.layout().addWidget(self.Quart1CheckBox)
@@ -237,7 +237,7 @@ class QuantitativeIndicesToolWidget:
     self.QIFrame3.setLayout(qt.QHBoxLayout())
     self.QIFrame3.layout().setSpacing(0)
     self.QIFrame3.layout().setMargin(0)
-    featuresFormLayout.addRow("", self.QIFrame3)
+    self.featuresFormLayout.addRow("", self.QIFrame3)
 
     self.Q1CheckBox = qt.QCheckBox("Q1 Distribution", self.QIFrame3)
     self.QIFrame3.layout().addWidget(self.Q1CheckBox)
@@ -259,7 +259,7 @@ class QuantitativeIndicesToolWidget:
     self.QIFrame4.setLayout(qt.QHBoxLayout())
     self.QIFrame4.layout().setSpacing(0)
     self.QIFrame4.layout().setMargin(0)
-    featuresFormLayout.addRow("", self.QIFrame4)
+    self.featuresFormLayout.addRow("", self.QIFrame4)
 
     self.Gly1CheckBox = qt.QCheckBox("Glycolysis Q1", self.QIFrame4)
     self.QIFrame4.layout().addWidget(self.Gly1CheckBox)
@@ -281,7 +281,7 @@ class QuantitativeIndicesToolWidget:
     self.QIFrame5.setLayout(qt.QHBoxLayout())
     self.QIFrame5.layout().setSpacing(0)
     self.QIFrame5.layout().setMargin(0)
-    featuresFormLayout.addRow("", self.QIFrame5)
+    self.featuresFormLayout.addRow("", self.QIFrame5)
 
     self.TLGCheckBox = qt.QCheckBox("TLG", self.QIFrame5)
     self.QIFrame5.layout().addWidget(self.TLGCheckBox)
@@ -303,7 +303,7 @@ class QuantitativeIndicesToolWidget:
     self.QIFrame6.setLayout(qt.QHBoxLayout())
     self.QIFrame6.layout().setSpacing(0)
     self.QIFrame6.layout().setMargin(0)
-    featuresFormLayout.addRow("", self.QIFrame6)
+    self.featuresFormLayout.addRow("", self.QIFrame6)
 
     self.PeakCheckBox = qt.QCheckBox("Peak", self.QIFrame6)
     self.QIFrame6.layout().addWidget(self.PeakCheckBox)
@@ -327,7 +327,7 @@ class QuantitativeIndicesToolWidget:
     self.calculateButton = qt.QPushButton("Calculate")
     self.calculateButton.toolTip = "Calculate quantitative features."
     self.calculateButton.enabled = False
-    featuresFormLayout.addRow(self.calculateButton)
+    self.featuresFormLayout.addRow(self.calculateButton)
     
     #
     # Results Frame

@@ -17,7 +17,6 @@ using namespace std;
 int main( int argc, char * argv[] )
 {
   PARSE_ARGS;
-
   typedef  float  PixelType;
 	const unsigned int Dimension = 3;
 
@@ -47,7 +46,6 @@ int main( int argc, char * argv[] )
   resampler->UseReferenceImageOn();
   resampler->SetReferenceImage(labelImage->GetOutput());
   resampler->UpdateLargestPossibleRegion();
-  
   typedef itk::QuantitativeIndicesComputationFilter<ImageType,LabelImageType> QIFilterType;
 
   if(!returnCSV){
@@ -83,7 +81,6 @@ int main( int argc, char * argv[] )
     qiCompute->SetInputLabelImage(labelImage->GetOutput());
     qiCompute->SetCurrentLabel( (int)Label_Value );
     qiCompute->Update();
-
 
     if(Mean||RMS||Variance||Max||Min||Volume||TLG||Glycolysis_Q1||Glycolysis_Q2||Glycolysis_Q3||Glycolysis_Q4||Q1_Distribution||Q2_Distribution||Q3_Distribution||Q4_Distribution)
       {
@@ -126,71 +123,71 @@ int main( int argc, char * argv[] )
         if(Volume){
           double vol = qiCompute->GetSegmentedVolume();
           if(!isnan(vol)){
-            writeFile << "Volume_s = " << vol * 0.001 << endl;
-            cout << "Volume: " << vol * 0.001 << endl;
+            writeFile << "Volume_s = " << 0.001*vol << endl;
+            cout << "Volume: " << 0.001*vol << endl;
           }
         }
         if(TLG){
           double tlg = qiCompute->GetTotalLesionGlycolysis();
           if(!isnan(tlg)){
-            writeFile << "TLG_s = " << tlg * 0.001 << endl;
-            cout << "TLG: " << tlg * 0.001 << endl;
+            writeFile << "TLG_s = " << 0.001*tlg << endl;
+            cout << "TLG: " << 0.001*tlg << endl;
           }
         }
         if(Glycolysis_Q1){
           double gly1 = qiCompute->GetGly1();
           if(!isnan(gly1)){
-            writeFile << "Glycolysis_Q1_s = " << gly1 * 0.001 << endl;
-            cout << "Glycolysis Q1: " << gly1 * 0.001 << endl;
+            writeFile << "Glycolysis_Q1_s = " << 0.001*gly1 << endl;
+            cout << "Glycolysis Q1: " << 0.001*gly1 << endl;
           }
         }
         if(Glycolysis_Q2){
           double gly2 = qiCompute->GetGly2();
           if(!isnan(gly2)){
-            writeFile << "Glycolysis_Q2_s = " << gly2 * 0.001 << endl;
-            cout << "Glycolysis Q2: " << gly2 * 0.001 << endl;
+            writeFile << "Glycolysis_Q2_s = " << 0.001*gly2 << endl;
+            cout << "Glycolysis Q2: " << 0.001*gly2 << endl;
           }
         }
         if(Glycolysis_Q3){
           double gly3 = qiCompute->GetGly3();
           if(!isnan(gly3)){
-            writeFile << "Glycolysis_Q3_s = " << gly3 * 0.001 << endl;
-            cout << "Glycolysis Q3: " << gly3 * 0.001 << endl;
+            writeFile << "Glycolysis_Q3_s = " << 0.001*gly3 << endl;
+            cout << "Glycolysis Q3: " << 0.001*gly3 << endl;
           }
         }
         if(Glycolysis_Q4){
           double gly4 = qiCompute->GetGly4();
           if(!isnan(gly4)){
-            writeFile << "Glycolysis_Q4_s = " << gly4 * 0.001 << endl;
-            cout << "Glycolysis Q4: " << gly4 * 0.001 << endl;
+            writeFile << "Glycolysis_Q4_s = " << 0.001*gly4 << endl;
+            cout << "Glycolysis Q4: " << 0.001*gly4 << endl;
           }
         }
         if(Q1_Distribution){
           double q1 = qiCompute->GetQ1();
           if(!isnan(q1)){
-            writeFile << "Q1_Distribution_s = " << q1 << endl;
-            cout << "Q1 Distribution: " << q1 << endl;
+            writeFile << "Q1_Distribution_s = " << 100*q1 << endl;
+            cout << "Q1 Distribution: " << 100*q1 << endl;
           }
         }
         if(Q2_Distribution){
           double q2 = qiCompute->GetQ2();
           if(!isnan(q2)){
-            writeFile << "Q2_Distribution_s = " << q2 << endl;
-            cout << "Q2 Distribution: " << q2 << endl;
+            writeFile << "Q2_Distribution_s = " << 100*q2 << endl;
+            cout << "Q2 Distribution: " << 100*q2 << endl;
           }
         }
         if(Q3_Distribution){
           double q3 = qiCompute->GetQ3();
           if(!isnan(q3)){
-            writeFile << "Q3_Distribution_s = " << q3 << endl;
-            cout << "Q3 Distribution: " << q3 << endl;
+            writeFile << "Q3_Distribution_s = " << 100*q3 << endl;
+            cout << "Q3 Distribution: " << 100*q3 << endl;
           }
         }
         if(Q4_Distribution){
           double q4 = qiCompute->GetQ4();
           if(!isnan(q4)){
-            writeFile << "Q4_Distribution_s = " << q4 << endl;
-            cout << "Q4 Distribution: " << q4 << endl;
+            writeFile << "Q4_Distribution_s = " << 100*q4 << endl;
+            cout << "Q4 Distribution: " << 100*q4 << endl;
           }
         }
       }
@@ -234,8 +231,8 @@ int main( int argc, char * argv[] )
         if(SAM){
           double sam = qiCompute->GetSAMValue();
           if(!isnan(sam)){
-            writeFile << "SAM_s = " << sam * 0.001 << endl;
-            cout << "SAM: " << sam * 0.001 << endl;
+            writeFile << "SAM_s = " << 0.001*sam << endl;
+            cout << "SAM: " << 0.001*sam << endl;
           }
         }
         if(SAM_Background){
@@ -295,6 +292,7 @@ int main( int argc, char * argv[] )
     IteratorType it(labelImage->GetOutput(), labelImage->GetOutput()->GetLargestPossibleRegion());
     it.GoToBegin();
     std::set<int> regionLabels;
+
     while(!it.IsAtEnd())
     {
       int labelValue = it.Get();
@@ -346,6 +344,7 @@ int main( int argc, char * argv[] )
       //itk::PluginFilterWatcher watchFilter(qiCompute, "Quantitative Indices Computation", CLPProcessInformation);
       //qiCompute->SetInputImage(ptImage->GetOutput());
       qiCompute->SetInputImage(resampler->GetOutput());
+
       qiCompute->SetInputLabelImage(labelImage->GetOutput());
       qiCompute->SetCurrentLabel( labelValue );
       qiCompute->Update();
@@ -371,23 +370,23 @@ int main( int argc, char * argv[] )
       if(Min){csvFile << qiCompute->GetMinimumValue() << ",";};
       if(Max){csvFile << qiCompute->GetMaximumValue() << ",";};
       if(Peak){csvFile << qiCompute->GetPeakValue() << ",";};
-      if(Volume){csvFile << qiCompute->GetSegmentedVolume() << ",";};
-      if(TLG){csvFile << qiCompute->GetTotalLesionGlycolysis() << ",";};
+      if(Volume){csvFile << 0.001*(qiCompute->GetSegmentedVolume()) << ",";};
+      if(TLG){csvFile << 0.001*(qiCompute->GetTotalLesionGlycolysis()) << ",";};
       if(Variance){csvFile << qiCompute->GetVariance() << ",";};
       if(First_Quartile){csvFile << qiCompute->GetFirstQuartileValue() << ",";};
       if(Median){csvFile << qiCompute->GetMedianValue() << ",";};
       if(Third_Quartile){csvFile << qiCompute->GetThirdQuartileValue() << ",";};
       if(Upper_Adjacent){csvFile << qiCompute->GetUpperAdjacentValue() << ",";};
       if(RMS){csvFile << qiCompute->GetRMSValue() << ",";}; 
-      if(Glycolysis_Q1){csvFile << qiCompute->GetGly1() << ",";};
-      if(Glycolysis_Q2){csvFile << qiCompute->GetGly2() << ",";};
-      if(Glycolysis_Q3){csvFile << qiCompute->GetGly3() << ",";};
-      if(Glycolysis_Q4){csvFile << qiCompute->GetGly4() << ",";};
-      if(Q1_Distribution){csvFile << qiCompute->GetQ1() << ",";};
-      if(Q2_Distribution){csvFile << qiCompute->GetQ2() << ",";};
-      if(Q3_Distribution){csvFile << qiCompute->GetQ3() << ",";};
-      if(Q4_Distribution){csvFile << qiCompute->GetQ4() << ",";};
-      if(SAM){csvFile << qiCompute->GetSAMValue() << ",";};
+      if(Glycolysis_Q1){csvFile << 0.001*(qiCompute->GetGly1()) << ",";};
+      if(Glycolysis_Q2){csvFile << 0.001*(qiCompute->GetGly2()) << ",";};
+      if(Glycolysis_Q3){csvFile << 0.001*(qiCompute->GetGly3()) << ",";};
+      if(Glycolysis_Q4){csvFile << 0.001*(qiCompute->GetGly4()) << ",";};
+      if(Q1_Distribution){csvFile << 100*(qiCompute->GetQ1()) << ",";};
+      if(Q2_Distribution){csvFile << 100*(qiCompute->GetQ2()) << ",";};
+      if(Q3_Distribution){csvFile << 100*(qiCompute->GetQ3()) << ",";};
+      if(Q4_Distribution){csvFile << 100*(qiCompute->GetQ4()) << ",";};
+      if(SAM){csvFile << 0.001*(qiCompute->GetSAMValue()) << ",";};
       if(SAM_Background){csvFile << qiCompute->GetSAMBackground() << ",";};
       
     }

@@ -52,7 +52,8 @@ int main( int argc, char * argv[] )
     ofstream writeFile;
     writeFile.open( returnParameterFile.c_str() );
     if(!Mean){writeFile << "Mean_s = --" << endl;};
-    if(!Variance){writeFile << "Variance_s = --" << endl;};
+    //if(!Variance){writeFile << "Variance_s = --" << endl;};
+    if(!SD){writeFile << "SD_s = --" << endl;};
     if(!RMS){writeFile << "RMS_s = --" << endl;};
     if(!Max){writeFile << "Max_s = --" << endl;};
     if(!Min){writeFile << "Min_s = --" << endl;};
@@ -82,7 +83,7 @@ int main( int argc, char * argv[] )
     qiCompute->SetCurrentLabel( (int)Label_Value );
     qiCompute->Update();
 
-    if(Mean||RMS||Variance||Max||Min||Volume||TLG||Glycolysis_Q1||Glycolysis_Q2||Glycolysis_Q3||Glycolysis_Q4||Q1_Distribution||Q2_Distribution||Q3_Distribution||Q4_Distribution)
+    if(Mean||RMS||SD||Max||Min||Volume||TLG||Glycolysis_Q1||Glycolysis_Q2||Glycolysis_Q3||Glycolysis_Q4||Q1_Distribution||Q2_Distribution||Q3_Distribution||Q4_Distribution)
       {
         qiCompute->CalculateMean();
         if(Mean){
@@ -99,11 +100,18 @@ int main( int argc, char * argv[] )
             cout << "RMS: " << rms << endl;
           }
         }
-        if(Variance){
+        /*if(Variance){
           double var = (double) qiCompute->GetVariance();
           if(!isnan(var)){
             writeFile << "Variance_s = " << var << endl;
             cout << "Variance: " << var << endl;
+          }
+        }*/
+        if(SD){
+          double stddev = sqrt(qiCompute->GetVariance());
+          if(!isnan(stddev)){
+            writeFile << "SD_s = " << stddev << endl;
+            cout << "SD: " << stddev << endl;
           }
         }
         if(Max){
@@ -261,7 +269,8 @@ int main( int argc, char * argv[] )
     ofstream writeFile; // needed always?
     writeFile.open( returnParameterFile.c_str() );
     writeFile << "Mean_s = --" << endl;
-    writeFile << "Variance_s = --" << endl;
+    //writeFile << "Variance_s = --" << endl;
+    writeFile << "SD_s = --" << endl;
     writeFile << "RMS_s = --" << endl;
     writeFile << "Max_s = --" << endl;
     writeFile << "Min_s = --" << endl;
@@ -314,7 +323,8 @@ int main( int argc, char * argv[] )
     if(Peak){csvFile << "Peak,";};
     if(Volume){csvFile << "Volume,";};
     if(TLG){csvFile << "TLG,";};
-    if(Variance){csvFile << "Variance,";};
+    //if(Variance){csvFile << "Variance,";};
+    if(SD){csvFile << "SD,";};
     if(First_Quartile){csvFile << "First_Quartile,";};
     if(Median){csvFile << "Median,";};
     if(Third_Quartile){csvFile << "Third_Quartile,";};
@@ -349,7 +359,7 @@ int main( int argc, char * argv[] )
       qiCompute->SetCurrentLabel( labelValue );
       qiCompute->Update();
       
-      if(Mean||RMS||Variance||Max||Min||Volume||TLG||Glycolysis_Q1||Glycolysis_Q2||Glycolysis_Q3||Glycolysis_Q4||Q1_Distribution||Q2_Distribution||Q3_Distribution||Q4_Distribution)
+      if(Mean||RMS||SD||Max||Min||Volume||TLG||Glycolysis_Q1||Glycolysis_Q2||Glycolysis_Q3||Glycolysis_Q4||Q1_Distribution||Q2_Distribution||Q3_Distribution||Q4_Distribution)
       {
         qiCompute->CalculateMean();
       }
@@ -372,7 +382,8 @@ int main( int argc, char * argv[] )
       if(Peak){csvFile << qiCompute->GetPeakValue() << ",";};
       if(Volume){csvFile << 0.001*(qiCompute->GetSegmentedVolume()) << ",";};
       if(TLG){csvFile << 0.001*(qiCompute->GetTotalLesionGlycolysis()) << ",";};
-      if(Variance){csvFile << qiCompute->GetVariance() << ",";};
+      //if(Variance){csvFile << qiCompute->GetVariance() << ",";};
+      if(SD){csvFile << sqrt(qiCompute->GetVariance()) << ",";};
       if(First_Quartile){csvFile << qiCompute->GetFirstQuartileValue() << ",";};
       if(Median){csvFile << qiCompute->GetMedianValue() << ",";};
       if(Third_Quartile){csvFile << qiCompute->GetThirdQuartileValue() << ",";};

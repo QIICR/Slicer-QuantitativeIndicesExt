@@ -595,14 +595,12 @@ QuantitativeIndicesComputationFilter<TImage, TLabelImage>
   peakFilter->SetInputLabelImage( this->GetInputLabelImage() );
   peakFilter->SetCurrentLabel( m_CurrentLabel );
   peakFilter->SetSamplingFactor( 20 ); //TODO remove after adding exact weights to itkPeakIntensityFilter
-  peakFilter->SetUseSourceSpacing(true); //TODO remove after adding exact weights to itkPeakIntensityFilter
+  peakFilter->SetUseApproximateKernel(true); //TODO remove after adding exact weights to itkPeakIntensityFilter
   peakFilter->CalculatePeak();
   
   m_PeakValue = peakFilter->GetPeakValue();
-  
-  typename ImageType::PointType peakLocation;
-  this->GetInputImage()->TransformIndexToPhysicalPoint(peakFilter->GetPeakIndex(),peakLocation);
-  m_PeakLocation = peakLocation;
+  m_PeakLocation = peakFilter->GetPeakLocation();
+
   
 
 }

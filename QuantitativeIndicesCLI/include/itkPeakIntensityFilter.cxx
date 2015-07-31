@@ -42,7 +42,7 @@ PeakIntensityFilter<TImage, TLabelImage, TInterpolator>
   double r = std::pow(1000*0.75/PI,1.0/3.0);
   m_SphereRadius.Fill(r); // approx. 1cc sphere
   m_UseInteriorOnly = true;
-  m_UseSourceSpacing = false;
+  m_UseApproximateKernel = false;
 }
 
 //----------------------------------------------------------------------------
@@ -312,22 +312,6 @@ PeakIntensityFilter<TImage, TLabelImage, TInterpolator>
 
 //----------------------------------------------------------------------------
 /*
-BuildKernel
-Creates the NeighborhoodOperatorImageFunction for the peak kernel.
-
-*/
-template <class TImage, class TLabelImage, class TInterpolator>
-void
-PeakIntensityFilter<TImage, TLabelImage, TInterpolator>
-::BuildKernel()
-{
-std::cout << "  BuildKernel()\n";
-
-}
-
-
-//----------------------------------------------------------------------------
-/*
 BuildPeakKernel
 Creates the NeighborhoodOperatorImageFunction for the peak kernel.
 
@@ -338,6 +322,23 @@ PeakIntensityFilter<TImage, TLabelImage, TInterpolator>
 ::BuildPeakKernel()
 {
 std::cout << "  BuildPeakKernel()\n";
+
+}
+
+
+//----------------------------------------------------------------------------
+/*
+ApproximatePeakKernel
+Creates the NeighborhoodOperatorImageFunction for the peak kernel.
+Approximates the weights of the peak kernel by subsampling the image spacing.
+Larger voxel sizes will require a higher sampling factor.
+*/
+template <class TImage, class TLabelImage, class TInterpolator>
+void
+PeakIntensityFilter<TImage, TLabelImage, TInterpolator>
+::ApproximatePeakKernel()
+{
+//std::cout << "  ApproximatePeakKernel()\n";
   ImagePointer inputImage = this->GetInputImage();
   LabelImagePointer labelImage = this->GetInputLabelImage();
   SpacingType voxelSize = inputImage->GetSpacing();
@@ -442,7 +443,7 @@ std::cout << "  BuildPeakKernel()\n";
 /*
 BuildIsotropicKernel
 Creates the NeighborhoodOperatorImageFunction for the peak kernel.
-
+TODO remove
 */
 template <class TImage, class TLabelImage, class TInterpolator>
 void
@@ -617,12 +618,12 @@ PeakIntensityFilter<TImage, TLabelImage, TInterpolator>
 ::CalculatePeak()
 {
 
-  if(m_UseSourceSpacing)
+  if(m_UseApproximateKernel)
   {
-    this->BuildPeakKernel();
+    this->ApproximatePeakKernel();
   }
   else{
-    this->BuildIsotropicKernel();
+    this->BuildPeakKernel();
   }
   this->ExtractLabelRegion();
   
@@ -638,7 +639,7 @@ PeakIntensityFilter<TImage, TLabelImage, TInterpolator>
   // convolve the kernel and evaluate at valid indices
   typedef typename itk::ImageRegionIterator<ImageType> IteratorType;
   IteratorType it(m_CroppedInputImage,m_CroppedInputImage->GetRequestedRegion());
-std::cout << "Mask Count: " << m_MaskCount << std::endl;
+//std::cout << "Mask Count: " << m_MaskCount << std::endl;
   typedef typename itk::ImageRegionIterator<LabelImageType> LabelIteratorType;
   LabelIteratorType lit(m_CroppedLabelImage,m_CroppedLabelImage->GetRequestedRegion());
   it.GoToBegin(); lit.GoToBegin(); 
@@ -679,8 +680,12 @@ std::cout << "Mask Count: " << m_MaskCount << std::endl;
   }
   m_PeakValue = peak;
   m_PeakIndex = peakIndex;
-std::cout << "Max Center Value: " << max_center_val << std::endl;
-std::cout << "Kernel Volume: " << this->GetKernelVolume() << std::endl;
+  PointType peakLocation;
+  m_CroppedInputImage->TransformIndexToPhysicalPoint(peakIndex,peakLocation);
+  m_PeakLocation = peakLocation;
+
+//std::cout << "Max Center Value: " << max_center_val << std::endl;
+//std::cout << "Kernel Volume: " << this->GetKernelVolume() << std::endl;
 
 }
 

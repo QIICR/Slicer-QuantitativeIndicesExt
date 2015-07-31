@@ -58,16 +58,9 @@ public:
   itkSetMacro(CurrentLabel, LabelPixelType);
   itkGetMacro(CurrentLabel, LabelPixelType);
 
-  itkGetMacro(MaximumValue, double);
-  itkGetMacro(AverageValue, double);
-  itkGetMacro(MinimumValue, double);
   itkGetMacro(PeakValue, double);
   itkGetMacro(PeakIndex, IndexType);
-  itkGetMacro(SegmentedVolume, double);
   itkGetMacro(PeakLocation, PointType);
-  itkGetMacro(NaivePeak, double);
-  itkGetMacro(NaivePeakIndex, IndexType);
-  itkGetMacro(NaivePeakLocation, PointType);
   
   itkSetMacro(SphereSpacing, SpacingType);
   itkGetMacro(SphereSpacing, SpacingType);
@@ -79,7 +72,7 @@ public:
   itkGetMacro(SphereVolume, double);
   itkSetMacro(SamplingFactor, int);
   itkSetMacro(UseInteriorOnly, bool);
-  itkSetMacro(UseSourceSpacing, bool);
+  itkSetMacro(UseApproximateKernel, bool);
 
   void CalculatePeak();
   double GetKernelVolume();
@@ -91,8 +84,8 @@ protected:
   
   void GenerateData();
   void BuildPeakKernel();
-  void BuildIsotropicKernel();
-  void BuildKernel();
+  void BuildIsotropicKernel(); // TODO remove
+  void ApproximatePeakKernel();
   void MakeKernelOperators( NeighborhoodOperatorImageFunctionType* neighborhoodOperator,
                             LabelNeighborhoodOperatorImageFunctionType* labelNeighborhoodOperator );
   
@@ -106,24 +99,12 @@ private:
 
   /** The label used to calculate indices. */
   LabelPixelType m_CurrentLabel;
-  /** The maximum segmented value.  */
-  double m_MaximumValue;
-  /** The average segmented value.  */
-  double m_AverageValue;
-  /** The minimum segmented value.  */
-  double m_MinimumValue;
   /** The peak segmented value.  */
   double m_PeakValue;
   /** The index of the peak.  */
   IndexType m_PeakIndex;
   /** The location of the peak.  */
   PointType m_PeakLocation;
-  /** The segmented volume.  */
-  float m_SegmentedVolume;
-  /** Naive peak value. */
-  double m_NaivePeak;
-  /** The location of the naive peak.  */
-  PointType m_NaivePeakLocation;
   
   SpacingType m_SphereSpacing;
   PointType m_SphereRadius;
@@ -138,7 +119,7 @@ private:
   typename LabelImageType::Pointer m_CroppedLabelImage;
   bool m_UseInteriorOnly;
   IndexType m_NaivePeakIndex;
-  bool m_UseSourceSpacing;
+  bool m_UseApproximateKernel;
   typename InternalImageType::Pointer m_KernelImage;
 
 };

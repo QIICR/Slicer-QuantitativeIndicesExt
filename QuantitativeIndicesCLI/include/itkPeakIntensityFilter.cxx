@@ -212,10 +212,9 @@ void
 PeakIntensityFilter<TImage, TLabelImage, TInterpolator>
 ::GenerateData()
 {
-  std::cout << "    GenerateData()\n";
+  //std::cout << "    GenerateData()\n";
   this->BuildPeakKernel();
   this->CalculatePeak();
-  this->CalculateNaivePeak();
 }
 
 
@@ -230,7 +229,7 @@ void
 PeakIntensityFilter<TImage, TLabelImage, TInterpolator>
 ::ExtractLabelRegion()
 {
-std::cout << "  ExtractLabelRegion()\n";
+//std::cout << "  ExtractLabelRegion()\n";
   ImagePointer inputImage = this->GetInputImage();
   LabelImagePointer inputLabel = this->GetInputLabelImage();
   m_CroppedInputImage = ImageType::New();
@@ -284,7 +283,7 @@ std::cout << "  ExtractLabelRegion()\n";
     minIndex[i] = std::floor(lowerIndex[i]-pad[i]);
     if(minIndex[i]<imageIndex[i]) minIndex[i]=imageIndex[i];
     maxIndex[i] = std::floor(upperIndex[i]+pad[i]);
-    if(maxIndex[i]>imageSize[i]-1) maxIndex[i]=imageSize[i];
+    if((unsigned int)maxIndex[i]>imageSize[i]-1) maxIndex[i]=imageSize[i];
     size[i] = maxIndex[i]-minIndex[i]+1;
   }
   
@@ -450,7 +449,7 @@ void
 PeakIntensityFilter<TImage, TLabelImage, TInterpolator>
 ::BuildIsotropicKernel()
 {
-std::cout << "  BuildIsotropicKernel()\n";
+//std::cout << "  BuildIsotropicKernel()\n";
   ImagePointer inputImage = this->GetInputImage();
   LabelImagePointer labelImage = this->GetInputLabelImage();
   SpacingType voxelSize = inputImage->GetSpacing();
@@ -634,7 +633,7 @@ PeakIntensityFilter<TImage, TLabelImage, TInterpolator>
   maskOperator->SetInputImage(this->GetInputLabelImage());
   this->MakeKernelOperators(peakOperator,maskOperator);
   
-std::cout << "  CalculatePeak()\n";
+//std::cout << "  CalculatePeak()\n";
   
   // convolve the kernel and evaluate at valid indices
   typedef typename itk::ImageRegionIterator<ImageType> IteratorType;
@@ -700,7 +699,7 @@ PeakIntensityFilter<TImage, TLabelImage, TInterpolator>
 ::MakeKernelOperators( NeighborhoodOperatorImageFunctionType* neighborhoodOperator,
                       LabelNeighborhoodOperatorImageFunctionType* labelNeighborhoodOperator)
 {
-std::cout << "  MakeKernelOperators()" << std::endl;
+//std::cout << "  MakeKernelOperators()" << std::endl;
 
   // create the mask kernel
   typedef typename itk::Neighborhood<LabelPixelType, ImageType::ImageDimension> LabelNeighborhoodType;
@@ -745,11 +744,11 @@ std::cout << "  MakeKernelOperators()" << std::endl;
   labelNeighborhoodOperator->SetOperator(labelNeighborhood); 
   neighborhoodOperator->SetOperator(neighborhood);
   
-  typedef typename itk::ImageFileWriter<InternalImageType> WriterType;
+  /*typedef typename itk::ImageFileWriter<InternalImageType> WriterType;
   typename WriterType::Pointer writer = WriterType::New();
   writer->SetFileName( "mask.nrrd" );
   writer->SetInput( m_KernelImage );
-  writer->Update();
+  writer->Update();*/
 
 }
 
@@ -786,141 +785,6 @@ PeakIntensityFilter<TImage, TLabelImage, TInterpolator>
   
   return voxelVolume*weightSum;
   
-}
-
-
-//----------------------------------------------------------------------------
-/*
-CalculateNaivePeak
-Actually runs the calculations to determine:
-NaivePeak, NaivePeak Location
-
-*/
-template <class TImage, class TLabelImage, class TInterpolator>
-void
-PeakIntensityFilter<TImage, TLabelImage, TInterpolator>
-::CalculateNaivePeak()
-{
-  // determine bounding box
-  typedef typename itk::ImageRegionConstIteratorWithIndex<LabelImageType> LabelIteratorType;
-  ImagePointer inputImage = this->GetInputImage();
-  LabelImagePointer inputLabel = this->GetInputLabelImage();
-
-  LabelIteratorType lit(inputLabel,inputLabel->GetLargestPossibleRegion());
-  lit.GoToBegin();
-  typename LabelImageType::IndexType lowerIndex;
-  int xmin = itk::NumericTraits<int>::max(); int xmax = itk::NumericTraits<int>::min();
-  int ymin = itk::NumericTraits<int>::max(); int ymax = itk::NumericTraits<int>::min();
-  int zmin = itk::NumericTraits<int>::max(); int zmax = itk::NumericTraits<int>::min();
-  bool labelFound = false;
-  while(!lit.IsAtEnd())
-  {
-    if(lit.Get()==m_CurrentLabel)
-    {
-      labelFound = true;
-      typename LabelImageType::IndexType idx = lit.GetIndex();
-      if(idx[0]<xmin) xmin=idx[0];
-      if(idx[0]>xmax) xmax=idx[0];
-      if(idx[1]<ymin) ymin=idx[1];
-      if(idx[1]>ymax) ymax=idx[1];
-      if(idx[2]<zmin) zmin=idx[2];
-      if(idx[2]>zmax) zmax=idx[2];
-    }
-    ++lit;
-  }
-  if(!labelFound)
-  {
-    m_NaivePeak = std::numeric_limits<double>::quiet_NaN();
-    return;
-  }
-  
-  // pad region by approx 1 cm
-  typename LabelImageType::SpacingType voxelSize = inputLabel->GetSpacing();
-  int xpad = std::ceil(10/voxelSize[0]);
-  int ypad = std::ceil(10/voxelSize[1]);
-  int zpad = std::ceil(10/voxelSize[2]);
-  
-  // resample regions to 1mm isotropic
-  typedef typename itk::ResampleImageFilter<ImageType,ImageType> ResampleImageType;
-  typedef typename itk::ResampleImageFilter<LabelImageType,LabelImageType> ResampleLabelType;
-  typename ResampleImageType::Pointer resampler = ResampleImageType::New();
-  typename ResampleLabelType::Pointer labelResampler = ResampleLabelType::New();
-  typedef typename itk::NearestNeighborInterpolateImageFunction<ImageType,double> InterpolatorType;
-  typedef typename itk::NearestNeighborInterpolateImageFunction<LabelImageType,double> LabelInterpolatorType;
-  typename InterpolatorType::Pointer interpolator = InterpolatorType::New();
-  typename LabelInterpolatorType::Pointer labelInterpolator = LabelInterpolatorType::New();
-
-  typename ImageType::SizeType size;
-  size[0] = std::ceil((xmax-xmin+1+2*xpad)*voxelSize[0]); 
-  size[1] = std::ceil((ymax-ymin+1+2*ypad)*voxelSize[1]); 
-  size[2] = std::ceil((zmax-zmin+1+2*zpad)*voxelSize[2]);
-
-  lowerIndex[0]=std::floor((xmin-xpad)*voxelSize[0]); 
-  lowerIndex[1]=std::floor((ymin-ypad)*voxelSize[1]); 
-  lowerIndex[2]=std::floor((zmin-zpad)*voxelSize[2]);
-  
-  resampler->SetInterpolator(interpolator);
-  typename ImageType::SpacingType spacing;
-  spacing.Fill(1);
-  resampler->SetOutputSpacing(spacing);
-  resampler->SetOutputOrigin(inputImage->GetOrigin());
-  resampler->SetOutputDirection(inputImage->GetDirection());
-  resampler->SetOutputStartIndex(lowerIndex);
-  resampler->SetSize(size);
-  resampler->SetInput(inputImage);
-  resampler->Update();
-  
-  labelResampler->SetInterpolator(labelInterpolator);
-  labelResampler->SetOutputSpacing(spacing);
-  labelResampler->SetOutputOrigin(inputLabel->GetOrigin());
-  labelResampler->SetOutputDirection(inputLabel->GetDirection());
-  labelResampler->SetOutputStartIndex(lowerIndex);
-  labelResampler->SetSize(size);
-  labelResampler->SetInput(inputLabel);
-  labelResampler->Update();
-  
-  // determine highest average, provided center voxel is still within label
-  typedef typename itk::BinaryBallStructuringElement<PixelType, 3> StructuringElementType;
-  StructuringElementType structuringElement;
-  structuringElement.SetRadius(QI_PEAK_RADIUS); // approx 1 cm^3 sphere
-  structuringElement.CreateStructuringElement();
-  typedef typename itk::ShapedNeighborhoodIterator< ImageType > NeighborhoodIteratorType;
-  NeighborhoodIteratorType nit(structuringElement.GetRadius(),resampler->GetOutput(),resampler->GetOutput()->GetRequestedRegion());
-  nit.CreateActiveListFromNeighborhood(structuringElement);
-  nit.GoToBegin();
-  LabelIteratorType Lit(labelResampler->GetOutput(),labelResampler->GetOutput()->GetRequestedRegion());
-  Lit.GoToBegin();
-  double peak = itk::NumericTraits<double>::min();
-  typename ImageType::IndexType peakIndex;
-  while(!nit.IsAtEnd())
-  {
-    if(Lit.Get()==m_CurrentLabel)
-    {
-      typename NeighborhoodIteratorType::Iterator sphereIt = nit.Begin();
-      double sphereMean = 0.0;
-      double activeIndices = nit.GetActiveIndexListSize();
-      while(!sphereIt.IsAtEnd())
-      {
-        sphereMean += sphereIt.Get();
-        ++sphereIt;
-      }
-      sphereMean /= activeIndices;
-      if(sphereMean>peak)
-      {
-        peak = sphereMean;
-        peakIndex = nit.GetIndex();
-      }
-    }
-    ++nit; ++Lit;
-  }
-  typename ImageType::PointType peakPoint;
-  resampler->GetOutput()->TransformIndexToPhysicalPoint(peakIndex, peakPoint);
-  
-  m_NaivePeak = peak;
-  IndexType truePeakIndex;
-  this->GetInputImage()->TransformPhysicalPointToIndex(peakPoint, truePeakIndex);
-  m_NaivePeakIndex = truePeakIndex;
-  m_NaivePeakLocation = peakPoint;
 }
 
 

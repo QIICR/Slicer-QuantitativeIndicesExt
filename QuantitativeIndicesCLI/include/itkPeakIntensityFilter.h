@@ -82,8 +82,6 @@ public:
   itkSetMacro(UseSourceSpacing, bool);
 
   void CalculatePeak();
-  void CalculateNaivePeak();
-  void CalculateSphereRadius();
   double GetKernelVolume();
 
 protected:
@@ -100,6 +98,7 @@ protected:
   
   typedef typename itk::Image<double, ImageType::ImageDimension> InternalImageType;
   void ExtractLabelRegion();
+  void CalculateSphereRadius();
   
 private:
   PeakIntensityFilter(const PeakIntensityFilter&); //purposely not implemented

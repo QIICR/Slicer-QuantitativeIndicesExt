@@ -12,6 +12,7 @@
 #include <itkRegionOfInterestImageFilter.h>
 #include "itkDilateObjectMorphologyImageFilter.h"
 #include "itkBinaryBallStructuringElement.h"
+#include "itkPeakIntensityFilter.h"
 
 #define QI_PEAK_RADIUS 6.204//2.5
 #define QI_PEAK_RADIUS_SPACING_RATE 4.0

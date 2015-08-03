@@ -258,12 +258,6 @@
       <channel>output</channel>
       <description><![CDATA[Total lesion glycolysis]]></description>
     </string>
-    <!-- <string>
-      <name>Variance_s</name>
-      <label>Variance</label>
-      <channel>output</channel>
-      <description><![CDATA[Variance in region of interest]]></description>
-    </string> -->
     <string>
       <name>SD_s</name>
       <label>Standard Deviation</label>

@@ -2,24 +2,11 @@
 #define _itkPeakIntensityFilter_cxx
 
 #include "itkPeakIntensityFilter.h"
-
-#include "itkImageRegionIterator.h"
 #include "itkImageRegionConstIteratorWithIndex.h"
-
-#include <itkResampleImageFilter.h>
-#include <itkConstShapedNeighborhoodIterator.h>
-#include <itkRegionOfInterestImageFilter.h>
-#include "itkBinaryBallStructuringElement.h"
-#include "itkShapedNeighborhoodIterator.h"
 #include "itkExtractImageFilter.h"
-#include "itkBinaryErodeImageFilter.h"
 #include <math.h>
 
-#define QI_PEAK_RADIUS 6.204//2.5
-#define QI_PEAK_RADIUS_SPACING_RATE 4.0
 #define PI 3.14159265359
-
-#define INITIAL_MARGIN 3
 
 #include "itkImageFileWriter.h"
 
@@ -28,17 +15,12 @@ namespace itk
 {
 
 //----------------------------------------------------------------------------
-template <class TImage, class TLabelImage, class TInterpolator>
-PeakIntensityFilter<TImage, TLabelImage, TInterpolator>
+template <class TImage, class TLabelImage>
+PeakIntensityFilter<TImage, TLabelImage>
 ::PeakIntensityFilter()
 {
   this->ProcessObject::SetNumberOfRequiredInputs(5);
   this->ProcessObject::SetNumberOfRequiredOutputs(0);
-  SpacingType sphereSpacing;
-  sphereSpacing.Fill(1);
-  m_SphereSpacing = sphereSpacing;
-  m_SphereVolume = 1000;  // 1cc sphere
-  //this->CalculateSphereRadius();
   double r = std::pow(1000*0.75/PI,1.0/3.0);
   m_SphereRadius.Fill(r); // approx. 1cc sphere
   m_UseInteriorOnly = true;
@@ -46,21 +28,21 @@ PeakIntensityFilter<TImage, TLabelImage, TInterpolator>
 }
 
 //----------------------------------------------------------------------------
-template <class TImage, class TLabelImage, class TInterpolator>
-PeakIntensityFilter<TImage, TLabelImage, TInterpolator>
+template <class TImage, class TLabelImage>
+PeakIntensityFilter<TImage, TLabelImage>
 ::~PeakIntensityFilter()
 {}
 
 
 //----------------------------------------------------------------------------
 /*
-SetSphereRadius
-Sets the radii for the sphere.
-
+SetSphereVolume
+Sets the volume of the sphere and updates the radii.
+Should only be used for 3-D sphere.
 */
-template <class TImage, class TLabelImage, class TInterpolator>
+template <class TImage, class TLabelImage>
 void
-PeakIntensityFilter<TImage, TLabelImage, TInterpolator>
+PeakIntensityFilter<TImage, TLabelImage>
 ::SetSphereVolume(double volume)
 {
   m_SphereVolume = volume;
@@ -74,12 +56,13 @@ SetSphereRadius
 Sets the radii for the sphere.
 
 */
-template <class TImage, class TLabelImage, class TInterpolator>
+template <class TImage, class TLabelImage>
 void
-PeakIntensityFilter<TImage, TLabelImage, TInterpolator>
-::SetSphereRadius(float r)
+PeakIntensityFilter<TImage, TLabelImage>
+::SetSphereRadius(double r)
 {
   m_SphereRadius.Fill(r);
+  this->Modified();
 }
 
 
@@ -89,13 +72,14 @@ CalculateSphereRadius
 Determines the radius based on sphere volume.
 
 */
-template <class TImage, class TLabelImage, class TInterpolator>
+template <class TImage, class TLabelImage>
 void
-PeakIntensityFilter<TImage, TLabelImage, TInterpolator>
+PeakIntensityFilter<TImage, TLabelImage>
 ::CalculateSphereRadius()
 {
   double r = pow(m_SphereVolume*0.75/PI,1.0/3.0);
   m_SphereRadius.Fill(r);
+  this->Modified();
 }
 
 //----------------------------------------------------------------------------
@@ -104,9 +88,9 @@ SetInputImage
 Sets the input volume.
 
 */
-template <class TImage, class TLabelImage, class TInterpolator>
+template <class TImage, class TLabelImage>
 void
-PeakIntensityFilter<TImage, TLabelImage, TInterpolator>
+PeakIntensityFilter<TImage, TLabelImage>
 ::SetInputImage( const ImageType* input )
 {
   // Process object is not const-correct so the const_cast is required here
@@ -119,9 +103,9 @@ SetInputImage
 Sets the input volume.
 
 */
-template <class TImage, class TLabelImage, class TInterpolator>
+template <class TImage, class TLabelImage>
 void
-PeakIntensityFilter<TImage, TLabelImage, TInterpolator>
+PeakIntensityFilter<TImage, TLabelImage>
 ::SetInputImage( ImageType* input )
 {
   // Process object is not const-correct so the const_cast is required here
@@ -135,10 +119,10 @@ GetInputImage
 Returns the input image volume.
 
 */
-template <class TImage, class TLabelImage, class TInterpolator>
-typename PeakIntensityFilter<TImage, TLabelImage, TInterpolator>
+template <class TImage, class TLabelImage>
+typename PeakIntensityFilter<TImage, TLabelImage>
 ::ImagePointer
-PeakIntensityFilter<TImage, TLabelImage, TInterpolator>
+PeakIntensityFilter<TImage, TLabelImage>
 ::GetInputImage() const
 {
   if ( this->GetNumberOfInputs() < 1 )
@@ -158,9 +142,9 @@ SetInputLabelImage
 Sets the label volume for the iput volume.
 
 */
-template <class TImage, class TLabelImage, class TInterpolator>
+template <class TImage, class TLabelImage>
 void
-PeakIntensityFilter<TImage, TLabelImage, TInterpolator>
+PeakIntensityFilter<TImage, TLabelImage>
 ::SetInputLabelImage( const LabelImageType* input )
 {
   // Process object is not const-correct so the const_cast is required here
@@ -173,9 +157,9 @@ SetInputLabelImage
 Sets the label volume for the input volume.
 
 */
-template <class TImage, class TLabelImage, class TInterpolator>
+template <class TImage, class TLabelImage>
 void
-PeakIntensityFilter<TImage, TLabelImage, TInterpolator>
+PeakIntensityFilter<TImage, TLabelImage>
 ::SetInputLabelImage( LabelImageType*  input )
 {
   // Process object is not const-correct so the const_cast is required here
@@ -189,10 +173,10 @@ GetInputLabelImage
 Returns the label image volume.
 
 */
-template <class TImage, class TLabelImage, class TInterpolator>
-typename PeakIntensityFilter<TImage, TLabelImage, TInterpolator>
+template <class TImage, class TLabelImage>
+typename PeakIntensityFilter<TImage, TLabelImage>
 ::LabelImagePointer
-PeakIntensityFilter<TImage, TLabelImage, TInterpolator>
+PeakIntensityFilter<TImage, TLabelImage>
 ::GetInputLabelImage() const
 {
   if ( this->GetNumberOfInputs() < 2 )
@@ -207,13 +191,12 @@ PeakIntensityFilter<TImage, TLabelImage, TInterpolator>
 }
 
 //----------------------------------------------------------------------------
-template <class TImage, class TLabelImage, class TInterpolator>
+template <class TImage, class TLabelImage>
 void
-PeakIntensityFilter<TImage, TLabelImage, TInterpolator>
+PeakIntensityFilter<TImage, TLabelImage>
 ::GenerateData()
 {
-  //std::cout << "    GenerateData()\n";
-  this->BuildPeakKernel();
+//std::cout << "    GenerateData()\n";
   this->CalculatePeak();
 }
 
@@ -224,9 +207,9 @@ ExtractLabelRegion
 Crops the input images to the area near the specified label.
 
 */
-template <class TImage, class TLabelImage, class TInterpolator>
+template <class TImage, class TLabelImage>
 void
-PeakIntensityFilter<TImage, TLabelImage, TInterpolator>
+PeakIntensityFilter<TImage, TLabelImage>
 ::ExtractLabelRegion()
 {
 //std::cout << "  ExtractLabelRegion()\n";
@@ -316,9 +299,9 @@ BuildPeakKernel
 Creates the NeighborhoodOperatorImageFunction for the peak kernel.
 
 */
-template <class TImage, class TLabelImage, class TInterpolator>
+template <class TImage, class TLabelImage>
 void
-PeakIntensityFilter<TImage, TLabelImage, TInterpolator>
+PeakIntensityFilter<TImage, TLabelImage>
 ::BuildPeakKernel()
 {
 std::cout << "  BuildPeakKernel()\n";
@@ -333,9 +316,9 @@ Creates the NeighborhoodOperatorImageFunction for the peak kernel.
 Approximates the weights of the peak kernel by subsampling the image spacing.
 Larger voxel sizes will require a higher sampling factor.
 */
-template <class TImage, class TLabelImage, class TInterpolator>
+template <class TImage, class TLabelImage>
 void
-PeakIntensityFilter<TImage, TLabelImage, TInterpolator>
+PeakIntensityFilter<TImage, TLabelImage>
 ::ApproximatePeakKernel()
 {
 //std::cout << "  ApproximatePeakKernel()\n";
@@ -441,180 +424,14 @@ PeakIntensityFilter<TImage, TLabelImage, TInterpolator>
 
 //----------------------------------------------------------------------------
 /*
-BuildIsotropicKernel
-Creates the NeighborhoodOperatorImageFunction for the peak kernel.
-TODO remove
-*/
-template <class TImage, class TLabelImage, class TInterpolator>
-void
-PeakIntensityFilter<TImage, TLabelImage, TInterpolator>
-::BuildIsotropicKernel()
-{
-//std::cout << "  BuildIsotropicKernel()\n";
-  ImagePointer inputImage = this->GetInputImage();
-  LabelImagePointer labelImage = this->GetInputLabelImage();
-  SpacingType voxelSize = inputImage->GetSpacing();
-  
-  // build a higher-resolution image of the kernel
-  SpacingType upsampledKernelSpacing;
-  upsampledKernelSpacing.Fill(m_SphereSpacing[0]/m_SamplingFactor);
-  SizeType upsampledKernelSize;
-  upsampledKernelSize.Fill((std::ceil(m_SphereRadius[0]/m_SphereSpacing[0])*2+1)*m_SamplingFactor);
-  //for(unsigned int i=0; i<ImageDimension; ++i)
-  //{
-    //upsampledKernelSpacing[i] = voxelSize[i]/m_SamplingFactor;
-    //upsampledKernelSize[i] = (std::ceil(m_SphereRadius[i]/voxelSize[i])*2+1)*m_SamplingFactor;
-  //}
-  PointType origin; origin.Fill(0);
-  IndexType startIndex; startIndex.Fill(0);
-  PointType upsampledKernelOrigin;
-  for(unsigned int i=0; i<ImageDimension; ++i)
-  {
-    upsampledKernelOrigin[i] =  0.5*((std::ceil(m_SphereRadius[0]/voxelSize[i])*2+1)*voxelSize[i] - (upsampledKernelSize[i])*m_SphereSpacing[0]/(double)m_SamplingFactor) + 0.5*m_SphereSpacing[0]/(double)m_SamplingFactor - 0.5*voxelSize[i];
-  }
-  typename InternalImageType::RegionType upsampledKernelRegion(startIndex, upsampledKernelSize);
-  typename InternalImageType::Pointer upsampledKernel = InternalImageType::New();
-  upsampledKernel->SetOrigin(upsampledKernelOrigin);
-  upsampledKernel->SetRegions(upsampledKernelRegion);
-  upsampledKernel->SetSpacing(upsampledKernelSpacing);
-  upsampledKernel->Allocate();
-  
-  // draw a sphere using physical coordinates
-  itk::ContinuousIndex<double,ImageDimension> centerIndex;
-  for(unsigned int i=0; i<ImageDimension; ++i)
-  {
-    centerIndex[i] = (upsampledKernelSize[i]-1)*0.5;
-  }
-  PointType centerPoint;
-  upsampledKernel->TransformContinuousIndexToPhysicalPoint(centerIndex, centerPoint);
-
-  typedef typename itk::ImageRegionIteratorWithIndex<InternalImageType> KernelIteratorType;
-  KernelIteratorType ukit(upsampledKernel,upsampledKernelRegion);
-  ukit.GoToBegin();
-  while(!ukit.IsAtEnd())
-  {
-    IndexType currentIndex = ukit.GetIndex();
-    PointType currentPoint;
-    upsampledKernel->TransformIndexToPhysicalPoint(currentIndex, currentPoint);
-    double r = 0.0;
-    for(unsigned int i=0; i<ImageDimension; ++i)
-    {
-      double psq = (currentPoint[i]-centerPoint[i])*(currentPoint[i]-centerPoint[i]);
-      r += psq/(m_SphereRadius[i]*m_SphereRadius[i]);
-    }
-    if(r <= 1.0)
-    {
-      ukit.Set(1.0);
-    }
-    else{
-      ukit.Set(0.0);
-    }
-    ++ukit;
-  }
-  
-  // build the full-resolution image of the kernel
-  SizeType kernelSize;
-  for(unsigned int i=0; i<ImageDimension; ++i)
-  {
-    kernelSize[i] = ceil(m_SphereRadius[i]/voxelSize[i])*2+1;
-    m_KernelRadius[i] = (kernelSize[i]-1)*0.5;
-  }
-  typename InternalImageType::Pointer kernel = InternalImageType::New();
-  kernel->SetOrigin(origin);
-  typename InternalImageType::RegionType kernelRegion(startIndex, kernelSize);
-  kernel->SetRegions(kernelRegion);
-  kernel->SetSpacing(voxelSize);
-  kernel->Allocate();
-  kernel->FillBuffer(0.0);
-  KernelIteratorType kit(kernel, kernelRegion);
-  kit.GoToBegin();
-  // image to keep track of counts within each kernel voxel
-  typename InternalImageType::Pointer weightImage = InternalImageType::New();
-  weightImage->SetOrigin(origin);
-  weightImage->SetRegions(kernelRegion);
-  weightImage->SetSpacing(voxelSize);
-  weightImage->Allocate();
-  weightImage->FillBuffer(0.0);
-  KernelIteratorType wit(weightImage, kernelRegion);
-  wit.GoToBegin();
-  
-  // iterate through the upsampled kernel and increment the full-resolution kernel
-  ukit.GoToBegin();
-  while(!ukit.IsAtEnd())
-  {
-    IndexType currentIndex = ukit.GetIndex();
-    double val = ukit.Get();
-    PointType currentPoint;
-    upsampledKernel->TransformIndexToPhysicalPoint(currentIndex, currentPoint);
-    IndexType newIndex;
-    kernel->TransformPhysicalPointToIndex(currentPoint, newIndex);
-    kit.SetIndex( newIndex );
-    double old_val = kit.Get();
-    kit.Set( old_val + val );
-    wit.SetIndex( newIndex );
-    wit.Set( wit.Get()+1 ); // may have different counts in each
-    ++ukit;
-  }
-  kit.GoToBegin(); wit.GoToBegin();
-  while(!kit.IsAtEnd())
-  {
-    double old_val = kit.Get();
-    kit.Set( old_val*1/wit.Get() );
-    ++kit; ++wit;
-  }
-  
-  // create the mask kernel
-  typedef typename itk::Neighborhood<LabelPixelType, ImageType::ImageDimension> LabelNeighborhoodType;
-  LabelNeighborhoodType labelNeighborhood;
-  labelNeighborhood.SetRadius(m_KernelRadius);
-  
-  // create the convolution kernel
-  NeighborhoodType neighborhood;
-  neighborhood.SetRadius(m_KernelRadius);
-  kit.GoToBegin();
-  
-  typename NeighborhoodType::Iterator nit = neighborhood.Begin();
-  typename LabelNeighborhoodType::Iterator lnit = labelNeighborhood.Begin();
-  m_KernelSum = 0.0;
-  m_MaskCount = 0.0;
-  while(!kit.IsAtEnd())
-  {
-    double val = kit.Get();
-    *nit = val;
-    m_KernelSum += val;
-    if( val > 0.0 )
-    {
-      *lnit = 1;
-      ++m_MaskCount;
-//std::cout << "valid: " << val << std::endl;
-    }
-    else{
-      *lnit = 0;
-    }
-    ++nit; ++kit; ++lnit;
-  }
-  
-  this->m_MaskKernelOperator = LabelNeighborhoodOperatorImageFunctionType::New();
-  this->m_MaskKernelOperator->SetOperator(labelNeighborhood);
-  this->m_MaskKernelOperator->SetInputImage(labelImage);
-  
-  this->m_PeakKernelOperator = NeighborhoodOperatorImageFunctionType::New();
-  this->m_PeakKernelOperator->SetOperator(neighborhood);
-  this->m_PeakKernelOperator->SetInputImage(inputImage);
-
-}
-
-
-//----------------------------------------------------------------------------
-/*
 CalculatePeak
 Actually runs the calculations to determine:
 Peak, Peak Location
 
 */
-template <class TImage, class TLabelImage, class TInterpolator>
+template <class TImage, class TLabelImage>
 void
-PeakIntensityFilter<TImage, TLabelImage, TInterpolator>
+PeakIntensityFilter<TImage, TLabelImage>
 ::CalculatePeak()
 {
 
@@ -698,9 +515,9 @@ Requires a pointer for the weighted version of the kernel and a pointer for
 the binary version of the kernel.
 
 */
-template <class TImage, class TLabelImage, class TInterpolator>
+template <class TImage, class TLabelImage>
 void
-PeakIntensityFilter<TImage, TLabelImage, TInterpolator>
+PeakIntensityFilter<TImage, TLabelImage>
 ::MakeKernelOperators( NeighborhoodOperatorImageFunctionType* neighborhoodOperator,
                       LabelNeighborhoodOperatorImageFunctionType* labelNeighborhoodOperator)
 {
@@ -722,7 +539,7 @@ PeakIntensityFilter<TImage, TLabelImage, TInterpolator>
   typename NeighborhoodType::Iterator nit = neighborhood.Begin();
   typename LabelNeighborhoodType::Iterator lnit = labelNeighborhood.Begin();
   double kernelSum = 0.0;
-  m_MaskCount = 0.0;
+  m_MaskCount = 0;
   while(!kit.IsAtEnd())
   {
     double val = kit.Get();
@@ -764,9 +581,9 @@ GetKernelVolume
 Determines the total volume of the kernel based on the voxel size and weights
 
 */
-template <class TImage, class TLabelImage, class TInterpolator>
+template <class TImage, class TLabelImage>
 double
-PeakIntensityFilter<TImage, TLabelImage, TInterpolator>
+PeakIntensityFilter<TImage, TLabelImage>
 ::GetKernelVolume()
 {
   // determine voxel volume
@@ -794,9 +611,9 @@ PeakIntensityFilter<TImage, TLabelImage, TInterpolator>
 
 
 //----------------------------------------------------------------------------
-template <class TImage, class TLabelImage, class TInterpolator>
+template <class TImage, class TLabelImage>
 void
-PeakIntensityFilter<TImage, TLabelImage, TInterpolator>
+PeakIntensityFilter<TImage, TLabelImage>
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf(os,indent);

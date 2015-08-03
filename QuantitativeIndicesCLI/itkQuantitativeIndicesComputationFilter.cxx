@@ -594,9 +594,12 @@ QuantitativeIndicesComputationFilter<TImage, TLabelImage>
   peakFilter->SetInputImage( this->GetInputImage() );
   peakFilter->SetInputLabelImage( this->GetInputLabelImage() );
   peakFilter->SetCurrentLabel( m_CurrentLabel );
+  peakFilter->SetSphereVolume( 1000 ); 
   peakFilter->SetSamplingFactor( 20 ); //TODO remove after adding exact weights to itkPeakIntensityFilter
   peakFilter->SetUseApproximateKernel(true); //TODO remove after adding exact weights to itkPeakIntensityFilter
+  //peakFilter->Update(); //TODO
   peakFilter->CalculatePeak();
+   
   
   m_PeakValue = peakFilter->GetPeakValue();
   m_PeakLocation = peakFilter->GetPeakLocation();

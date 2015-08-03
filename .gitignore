@@ -4,3 +4,4 @@ QuantitativeIndicesCLI/Data/
 QuantitativeIndicesTool/Resources/
 QuantitativeIndicesTool/QuantitativeIndicesTool.png
 build/
+*.pyc

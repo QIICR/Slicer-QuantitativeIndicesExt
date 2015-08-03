@@ -154,10 +154,61 @@ void
 QuantitativeIndicesComputationFilter<TImage, TLabelImage>
 ::GenerateData()
 {
+//std::cout << "GenerateData()\n";
   this->CalculateMean();
   this->CalculateQuartiles();
   this->CalculateSAM();
   this->CalculatePeak();
+}
+
+//----------------------------------------------------------------------------
+/*
+CreateSegmentedValueList
+
+*/
+template <class TImage, class TLabelImage>
+void
+QuantitativeIndicesComputationFilter<TImage, TLabelImage>
+::CreateSegmentedValueList()
+{
+  typedef itk::ImageRegionConstIterator<ImageType>  InputIteratorType;
+  typedef itk::ImageRegionConstIterator<LabelImageType>  LabelIteratorType;
+
+  ImagePointer inputImage = this->GetInputImage();
+  LabelImagePointer inputLabel = this->GetInputLabelImage();
+  
+  double d_maximumValue = itk::NumericTraits<double>::min();
+  double d_minimumValue = itk::NumericTraits<double>::max();
+
+  //Iterate through the image and label.  Determine values where the label is correct in the process.
+  LabelIteratorType laIt(inputLabel, inputLabel->GetLargestPossibleRegion());
+  laIt.GoToBegin();
+  InputIteratorType inIt(inputImage, inputImage->GetLargestPossibleRegion());
+  inIt.GoToBegin();
+
+  while (!laIt.IsAtEnd() && !inIt.IsAtEnd())
+  {
+    if (laIt.Get() == m_CurrentLabel)
+    {
+      double curValue = (double) inIt.Get();
+      m_SegmentedValues.push_back(curValue);
+      if (curValue > d_maximumValue)  {d_maximumValue = curValue;}
+      if (curValue < d_minimumValue)  {d_minimumValue = curValue;}
+    }
+    ++inIt;
+    ++laIt;
+  }
+
+  m_ListGenerated = true;
+  if(m_SegmentedValues.size()==0)
+  {
+    m_MinimumValue = std::numeric_limits<double>::quiet_NaN();
+    m_MaximumValue = std::numeric_limits<double>::quiet_NaN();
+  }
+  else{
+    m_MinimumValue = d_minimumValue;
+    m_MaximumValue = d_maximumValue;
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -173,10 +224,8 @@ void
 QuantitativeIndicesComputationFilter<TImage, TLabelImage>
 ::CalculateMean()
 {
-
+//std::cout << "CalculateMean()\n";
   //Declare the variables to determine
-  double d_maximumValue = itk::NumericTraits<double>::min();
-  double d_minimumValue = itk::NumericTraits<double>::max();
   double d_averageValue = 0.0;
   double d_rmsValue = 0.0;
   double d_variance = 0.0;
@@ -197,89 +246,51 @@ QuantitativeIndicesComputationFilter<TImage, TLabelImage>
   double sum3 = 0.0;
   double sum4 = 0.0;
 
-  typedef itk::ImageRegionConstIterator<ImageType>  InputIteratorType;
-  typedef itk::ImageRegionConstIterator<LabelImageType>  LabelIteratorType;
-
   ImagePointer inputImage = this->GetInputImage();
-
-  LabelImagePointer inputLabel = this->GetInputLabelImage();
-
-  PointType labelStartPoint;
-  inputLabel->TransformIndexToPhysicalPoint(inputLabel->GetLargestPossibleRegion().GetIndex(), labelStartPoint);
-  
-  typename ImageType::IndexType inputStartIndex;
-  inputImage->TransformPhysicalPointToIndex(labelStartPoint, inputStartIndex);
-  
-  typename ImageType::RegionType inputLabelRegion;
-  inputLabelRegion.SetIndex(inputStartIndex);
-  inputLabelRegion.SetSize(inputLabel->GetLargestPossibleRegion().GetSize());
-
   typename ImageType::SpacingType spacing = inputImage->GetSpacing();
 
   //Need to store all segmented values for some computations
-  std::list<double> segmentedValues;
-  if(m_ListGenerated)  // list is already generated
+  if(!m_ListGenerated)
   {
-    segmentedValues = m_SegmentedValues;
-    std::list<double>::iterator listIt = segmentedValues.begin();
-    //Find min and max values
-    while (listIt != segmentedValues.end())
-    {
-      double curValue = *listIt;
-      if (curValue > d_maximumValue)  {d_maximumValue = curValue;}
-      if (curValue < d_minimumValue)  {d_minimumValue = curValue;}
-      d_segmentedVolume += 1;
-      d_rmsValue += curValue*curValue;
-      listIt++;
-    }
-    //Find the distribution within the range
-    binSize = (d_maximumValue-d_minimumValue)*0.25;
-    listIt = segmentedValues.begin();
-    while (listIt != segmentedValues.end())
-    {
-      double curValue = *listIt;
-      if(curValue >= d_minimumValue && curValue <= (d_minimumValue + binSize)){d_q1++; sum1+=curValue;};
-      if(curValue > (d_minimumValue+binSize) && curValue <= (d_minimumValue+2*binSize)){d_q2++; sum2+=curValue;};
-      if(curValue > (d_minimumValue+2*binSize) && curValue <= (d_minimumValue+3*binSize)){d_q3++; sum3+=curValue;};
-      if(curValue > (d_minimumValue+3*binSize) && curValue <= (d_minimumValue+4*binSize)){d_q4++; sum4+=curValue;}; 
-      listIt++;
-    }
-  }else{
-    //Iterate through the image and label.  Determine values where the label is correct in the process.
-    LabelIteratorType laIt(inputLabel, inputLabel->GetLargestPossibleRegion());
-    laIt.GoToBegin();
-    InputIteratorType inIt(inputImage, inputLabelRegion);
-    inIt.GoToBegin();
+    this->CreateSegmentedValueList();
+  }
+  if(m_SegmentedValues.size()==0)
+  {
+    m_AverageValue = std::numeric_limits<double>::quiet_NaN();
+    m_RMSValue = std::numeric_limits<double>::quiet_NaN();
+    m_SegmentedVolume = std::numeric_limits<double>::quiet_NaN();
+    m_TotalLesionGlycolysis = std::numeric_limits<double>::quiet_NaN();
+    m_Variance = std::numeric_limits<double>::quiet_NaN();
+    m_Gly1 = std::numeric_limits<double>::quiet_NaN();
+    m_Gly2 = std::numeric_limits<double>::quiet_NaN();
+    m_Gly3 = std::numeric_limits<double>::quiet_NaN();
+    m_Gly4 = std::numeric_limits<double>::quiet_NaN();
+    m_Q1 = std::numeric_limits<double>::quiet_NaN();
+    m_Q2 = std::numeric_limits<double>::quiet_NaN();
+    m_Q3 = std::numeric_limits<double>::quiet_NaN();
+    m_Q4 = std::numeric_limits<double>::quiet_NaN();
+    return;
+  }
 
-    while (!laIt.IsAtEnd() && !inIt.IsAtEnd())
-    {
-      if (laIt.Get() == m_CurrentLabel)
-      {
-        double curValue = (double) inIt.Get();
-        segmentedValues.push_back(curValue);
-        if (curValue > d_maximumValue)  {d_maximumValue = curValue;}
-        if (curValue < d_minimumValue)  {d_minimumValue = curValue;}
-        d_rmsValue += curValue*curValue;
-        d_segmentedVolume += 1;
-      }
-      ++inIt;
-      ++laIt;
-    }
-    std::list<double>::iterator listIt = segmentedValues.begin();
-    //Find the distribution within the range
-    binSize = (d_maximumValue-d_minimumValue)*0.25;
-    while (listIt != segmentedValues.end())
-    {
-      double curValue = *listIt;
-      if(curValue >= d_minimumValue && curValue <= (d_minimumValue + binSize)){d_q1++; sum1+=curValue;};
-      if(curValue > (d_minimumValue+binSize) && curValue <= (d_minimumValue+2*binSize)){d_q2++; sum2+=curValue;};
-      if(curValue > (d_minimumValue+2*binSize) && curValue <= (d_minimumValue+3*binSize)){d_q3++; sum3+=curValue;};
-      if(curValue > (d_minimumValue+3*binSize) && curValue <= (d_minimumValue+4*binSize)){d_q4++; sum4+=curValue;}; 
-      listIt++;
-    }
-    //Set the member variables after the list is generated
-    m_SegmentedValues = segmentedValues;
-    m_ListGenerated = true;
+  std::vector<double>::const_iterator listIt = m_SegmentedValues.begin();
+  while (listIt != m_SegmentedValues.end())
+  {
+    double curValue = *listIt;
+    d_segmentedVolume += 1;
+    d_rmsValue += curValue*curValue;
+    listIt++;
+  }
+  //Find the distribution within the range
+  binSize = (m_MaximumValue-m_MinimumValue)*0.25;
+  listIt = m_SegmentedValues.begin();
+  while (listIt != m_SegmentedValues.end())
+  {
+    double curValue = *listIt;
+    if(curValue >= m_MinimumValue && curValue <= (m_MinimumValue + binSize)){d_q1++; sum1+=curValue;};
+    if(curValue > (m_MinimumValue+binSize) && curValue <= (m_MinimumValue+2*binSize)){d_q2++; sum2+=curValue;};
+    if(curValue > (m_MinimumValue+2*binSize) && curValue <= (m_MinimumValue+3*binSize)){d_q3++; sum3+=curValue;};
+    if(curValue > (m_MinimumValue+3*binSize) && curValue <= (m_MinimumValue+4*binSize)){d_q4++; sum4+=curValue;}; 
+    listIt++;
   }
 
   double voxelCount = d_segmentedVolume;
@@ -298,8 +309,8 @@ QuantitativeIndicesComputationFilter<TImage, TLabelImage>
   d_q3 = d_q3/voxelCount;
   d_q4 = d_q4/voxelCount;
 
-	std::list<double>::iterator listIt = segmentedValues.begin();
-	while (listIt != segmentedValues.end())
+	listIt = m_SegmentedValues.begin();
+	while (listIt != m_SegmentedValues.end())
 	{
 		d_variance += ((*listIt)-d_averageValue) * ((*listIt)-d_averageValue);
 		listIt++;
@@ -307,42 +318,21 @@ QuantitativeIndicesComputationFilter<TImage, TLabelImage>
 
   d_variance /= (voxelCount);
 
-  if(segmentedValues.size()==0)
-  {
-    m_AverageValue = std::numeric_limits<double>::quiet_NaN();
-    m_RMSValue = std::numeric_limits<double>::quiet_NaN();
-    m_MinimumValue = std::numeric_limits<double>::quiet_NaN();
-    m_MaximumValue = std::numeric_limits<double>::quiet_NaN();
-    m_SegmentedVolume = std::numeric_limits<double>::quiet_NaN();
-    m_TotalLesionGlycolysis = std::numeric_limits<double>::quiet_NaN();
-    m_Variance = std::numeric_limits<double>::quiet_NaN();
-    m_Gly1 = std::numeric_limits<double>::quiet_NaN();
-    m_Gly2 = std::numeric_limits<double>::quiet_NaN();
-    m_Gly3 = std::numeric_limits<double>::quiet_NaN();
-    m_Gly4 = std::numeric_limits<double>::quiet_NaN();
-    m_Q1 = std::numeric_limits<double>::quiet_NaN();
-    m_Q2 = std::numeric_limits<double>::quiet_NaN();
-    m_Q3 = std::numeric_limits<double>::quiet_NaN();
-    m_Q4 = std::numeric_limits<double>::quiet_NaN();
-  }
-  else{
-    //Set the class variables to the values we've determined.
-    m_AverageValue = d_averageValue;
-    m_RMSValue = d_rmsValue;
-    m_MinimumValue = d_minimumValue;
-    m_MaximumValue = d_maximumValue;
-    m_SegmentedVolume = d_segmentedVolume;
-    m_TotalLesionGlycolysis = d_totalLesionGly;
-    m_Variance = d_variance;
-    m_Gly1 = d_gly1;
-    m_Gly2 = d_gly2;
-    m_Gly3 = d_gly3;
-    m_Gly4 = d_gly4;
-    m_Q1 = d_q1;
-    m_Q2 = d_q2;
-    m_Q3 = d_q3;
-    m_Q4 = d_q4;
-  }
+  //Set the class variables to the values we've determined.
+  m_AverageValue = d_averageValue;
+  m_RMSValue = d_rmsValue;
+  m_SegmentedVolume = d_segmentedVolume;
+  m_TotalLesionGlycolysis = d_totalLesionGly;
+  m_Variance = d_variance;
+  m_Gly1 = d_gly1;
+  m_Gly2 = d_gly2;
+  m_Gly3 = d_gly3;
+  m_Gly4 = d_gly4;
+  m_Q1 = d_q1;
+  m_Q2 = d_q2;
+  m_Q3 = d_q3;
+  m_Q4 = d_q4;
+
 }
 
 //----------------------------------------------------------------------------
@@ -357,103 +347,66 @@ void
 QuantitativeIndicesComputationFilter<TImage, TLabelImage>
 ::CalculateQuartiles()
 {
-
+//std::cout << "CalculateQuartiles()\n";
   //Declare the variables to determine
   double d_medianValue = 0.0;
   double d_firstQuartileValue = 0.0;
   double d_thirdQuartileValue = 0.0;
   double d_upperAdjacentValue = 0.0;
-  //double d_maximumValue = itk::NumericTraits<double>::min();
-
-  typedef itk::ImageRegionConstIterator<ImageType>  InputIteratorType;
-  typedef itk::ImageRegionConstIterator<LabelImageType>  LabelIteratorType;
-
-  ImagePointer inputImage = this->GetInputImage();
-
-  LabelImagePointer inputLabel = this->GetInputLabelImage();
-
-  PointType labelStartPoint;
-  inputLabel->TransformIndexToPhysicalPoint(inputLabel->GetLargestPossibleRegion().GetIndex(), labelStartPoint);
-  
-  typename ImageType::IndexType inputStartIndex;
-  inputImage->TransformPhysicalPointToIndex(labelStartPoint, inputStartIndex);
-  
-  typename ImageType::RegionType inputLabelRegion;
-  inputLabelRegion.SetIndex(inputStartIndex);
-  inputLabelRegion.SetSize(inputLabel->GetLargestPossibleRegion().GetSize());
 
   //Need to store all segmented values for some computations
-  std::list<double> segmentedValues;
-  if(m_ListGenerated)  // list is already generated
+  if(!m_ListGenerated)  // list is already generated
   {
-    segmentedValues = m_SegmentedValues;
-  }else{
-    //Iterate through the image and label.  Determine values where the label is correct in the process.
-    LabelIteratorType laIt(inputLabel, inputLabel->GetLargestPossibleRegion());
-    laIt.GoToBegin();
-    InputIteratorType inIt(inputImage, inputLabelRegion);
-    inIt.GoToBegin();
-
-    while (!laIt.IsAtEnd() && !inIt.IsAtEnd())
-    {
-      if (laIt.Get() == m_CurrentLabel)
-      {
-        double curValue = (double) inIt.Get();
-        segmentedValues.push_back(curValue);
-      }
-      ++inIt;
-      ++laIt;
-    }
-    m_SegmentedValues = segmentedValues;
-    m_ListGenerated = true;
+    this->CreateSegmentedValueList();
+  }
+  if(m_SegmentedValues.size()==0)
+  {
+    m_MedianValue = std::numeric_limits<double>::quiet_NaN();
+    m_FirstQuartileValue = std::numeric_limits<double>::quiet_NaN();
+    m_ThirdQuartileValue = std::numeric_limits<double>::quiet_NaN();
+    m_UpperAdjacentValue = std::numeric_limits<double>::quiet_NaN();
+    return;
   }
 
-  //Sort the values to simplify getting the quartiles and median.
-  segmentedValues.sort();
-  float segmentedValuesSize = segmentedValues.size();
-  int list_progress = 0;
-	std::list<double>::iterator listIt = segmentedValues.begin();
-  //Now scan through to find the quartiles.
-	while (listIt != segmentedValues.end())
+  //Sort the values
+  sort(m_SegmentedValues.begin(), m_SegmentedValues.end());
+  int segmentedValuesSize = m_SegmentedValues.size();
+	std::vector<double>::const_iterator listIt = m_SegmentedValues.begin();
+  //Determine quartiles
+	if(segmentedValuesSize % 2 == 0)
 	{
-		list_progress++;
-		if (list_progress == (int)(segmentedValuesSize*0.25))
-		{ d_firstQuartileValue = (*listIt); }
-		if (list_progress == (int)(segmentedValuesSize*0.5))
-		{ d_medianValue = (*listIt);  }
-		if (list_progress == (int)(segmentedValuesSize*0.75))
-		{ d_thirdQuartileValue = (*listIt); }
-		listIt++;
+	  d_medianValue = (m_SegmentedValues[segmentedValuesSize/2-1] + m_SegmentedValues[segmentedValuesSize/2])*0.5;
+	}
+	else{
+	  d_medianValue = m_SegmentedValues[segmentedValuesSize/2];
+	}
+	if(segmentedValuesSize % 4 == 0)
+	{
+	  d_firstQuartileValue = (m_SegmentedValues[segmentedValuesSize/4-1] + m_SegmentedValues[segmentedValuesSize/4])*0.5;
+	  d_thirdQuartileValue = (m_SegmentedValues[segmentedValuesSize*0.75-1] + m_SegmentedValues[segmentedValuesSize*0.75])*0.5;
+	}
+	else{
+	  d_firstQuartileValue = m_SegmentedValues[segmentedValuesSize/4];
+	  d_thirdQuartileValue = m_SegmentedValues[segmentedValuesSize*3/4];
 	}
 
   // Find upper adjacent value
   double IQR = d_thirdQuartileValue - d_firstQuartileValue;
-  listIt = segmentedValues.end();
-  listIt--;
-  double d_maximumValue = *listIt;
-  listIt = segmentedValues.begin();
+  double d_maximumValue = m_SegmentedValues[segmentedValuesSize-1];
+  listIt = m_SegmentedValues.begin();
   if(IQR!=0){
-    while(listIt != segmentedValues.end()){
+    while(listIt != m_SegmentedValues.end()){
       if(*listIt < (d_thirdQuartileValue+1.5*IQR)){ d_upperAdjacentValue = *listIt; };
       listIt++;
     }
   }
   else{ d_upperAdjacentValue = d_maximumValue; }
 
-  if(segmentedValues.size()==0)
-  {
-    m_MedianValue = std::numeric_limits<double>::quiet_NaN();
-    m_FirstQuartileValue = std::numeric_limits<double>::quiet_NaN();
-    m_ThirdQuartileValue = std::numeric_limits<double>::quiet_NaN();
-    m_UpperAdjacentValue = std::numeric_limits<double>::quiet_NaN();
-  }
-  else{
-    //Set the class variables to the values we've determined.
-    m_MedianValue = d_medianValue;
-    m_FirstQuartileValue = d_firstQuartileValue;
-    m_ThirdQuartileValue = d_thirdQuartileValue;
-    m_UpperAdjacentValue = d_upperAdjacentValue;
-  }
+  //Set the class variables to the values we've determined.
+  m_MedianValue = d_medianValue;
+  m_FirstQuartileValue = d_firstQuartileValue;
+  m_ThirdQuartileValue = d_thirdQuartileValue;
+  m_UpperAdjacentValue = d_upperAdjacentValue;
 }
 
 
@@ -469,7 +422,7 @@ void
 QuantitativeIndicesComputationFilter<TImage, TLabelImage>
 ::CalculateSAM()
 {
-
+//std::cout << "CalculateSAM()\n";
   //Declare the variables to determine
   double d_SAM = 0.0;
   double d_SAMBackground = 0.0;
@@ -480,7 +433,6 @@ QuantitativeIndicesComputationFilter<TImage, TLabelImage>
   typedef itk::ImageRegionConstIterator<LabelImageType>  LabelIteratorType;
 
   ImagePointer inputImage = this->GetInputImage();
-
   LabelImagePointer inputLabel = this->GetInputLabelImage();
 
   typename ImageType::SpacingType spacing = inputImage->GetSpacing();
@@ -489,38 +441,23 @@ QuantitativeIndicesComputationFilter<TImage, TLabelImage>
   InputIteratorType inIt(inputImage, inputImage->GetLargestPossibleRegion());
   inIt.GoToBegin();
 
-  //Need to store all segmented values for some computations
-  std::list<double> segmentedValues;
-  if(m_ListGenerated)  // list is already generated
+  if(!m_ListGenerated)
   {
-    segmentedValues = m_SegmentedValues;
-    std::list<double>::iterator listIt = segmentedValues.begin();
-    while (listIt != segmentedValues.end())
-    {
-      double curValue = *listIt;
-      d_averageValue += curValue;
-      d_segmentedVolume += 1;
-      listIt++;
-    }
-  }else{
-    //Iterate through the image and label.  Determine values where the label is correct in the process.
-    LabelIteratorType laIt(inputLabel, inputLabel->GetLargestPossibleRegion());
-    laIt.GoToBegin();
-
-    while (!laIt.IsAtEnd() && !inIt.IsAtEnd())
-    {
-      if (laIt.Get() == m_CurrentLabel)
-      {
-        double curValue = (double) inIt.Get();
-        segmentedValues.push_back(curValue);
-        d_averageValue += curValue;
-        d_segmentedVolume += 1;
-      }
-      ++inIt;
-      ++laIt;
-    }
-    m_SegmentedValues = segmentedValues;
-    m_ListGenerated = true;
+    this->CreateSegmentedValueList();
+  }
+  if(m_SegmentedValues.size()==0)
+  {
+    m_SAMValue = std::numeric_limits<double>::quiet_NaN();
+    m_SAMBackground = std::numeric_limits<double>::quiet_NaN();
+    return;
+  }
+  std::vector<double>::const_iterator listIt = m_SegmentedValues.begin();
+  while (listIt != m_SegmentedValues.end())
+  {
+    double curValue = *listIt;
+    d_averageValue += curValue;
+    d_segmentedVolume += 1;
+    listIt++;
   }
 
   d_averageValue /= d_segmentedVolume;
@@ -553,26 +490,20 @@ QuantitativeIndicesComputationFilter<TImage, TLabelImage>
     }
 
   double dilatedSize = (double) dilatedRegionValues.size();
-	std::list<double>::iterator listIt = dilatedRegionValues.begin();
-  while(listIt != dilatedRegionValues.end())
+	std::list<double>::iterator dlistIt = dilatedRegionValues.begin();
+  while(dlistIt != dilatedRegionValues.end())
     {
-      d_SAM += *listIt;
-      listIt++;
+      d_SAM += *dlistIt;
+      dlistIt++;
     }
   d_SAM = d_SAM / dilatedSize;
   d_SAMBackground = (d_SAM*dilatedSize-d_averageValue*d_segmentedVolume)/(dilatedSize-d_segmentedVolume);
   d_SAM = (d_averageValue-d_SAMBackground)*d_segmentedVolume*voxelSize;
 
-  if(segmentedValues.size()==0)
-  {
-    m_SAMValue = std::numeric_limits<double>::quiet_NaN();
-    m_SAMBackground = std::numeric_limits<double>::quiet_NaN();
-  }
-  else{
-    //Set the class variables to the values we've determined.
-    m_SAMValue = d_SAM;
-    m_SAMBackground = d_SAMBackground;
-  }
+  //Set the class variables to the values we've determined.
+  m_SAMValue = d_SAM;
+  m_SAMBackground = d_SAMBackground;
+
 }
 
 
@@ -588,7 +519,7 @@ void
 QuantitativeIndicesComputationFilter<TImage, TLabelImage>
 ::CalculatePeak()
 {
-
+//std::cout << "CalculatePeak()\n";
   typedef typename itk::PeakIntensityFilter<ImageType,LabelImageType> PeakFilterType;
   typename PeakFilterType::Pointer peakFilter = PeakFilterType::New();
   peakFilter->SetInputImage( this->GetInputImage() );

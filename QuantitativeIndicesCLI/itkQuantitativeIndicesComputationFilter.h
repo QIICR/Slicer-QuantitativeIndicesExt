@@ -81,6 +81,7 @@ protected:
   virtual void PrintSelf(std::ostream& os, Indent indent) const;
   
   void GenerateData();
+  void CreateSegmentedValueList();
 
   
 private:
@@ -140,7 +141,7 @@ private:
   /** Flag indicating if list has been generated */
   bool m_ListGenerated;
   /** List of values in region of interest */
-  std::list<double> m_SegmentedValues;
+  std::vector<double> m_SegmentedValues;
 };
 
 } // end namespace itk

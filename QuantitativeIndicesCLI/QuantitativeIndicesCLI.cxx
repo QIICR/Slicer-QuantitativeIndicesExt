@@ -38,14 +38,33 @@ int main( int argc, char * argv[] )
   ptImage->Update();
   labelImage->Update();
   
+  // check if image and label occupy about the same space
+  bool sameSpace = true;
+  ImageType::SpacingType ptSpacing = ptImage->GetOutput()->GetSpacing();
+  ImageType::PointType ptOrigin = ptImage->GetOutput()->GetOrigin();
+  ImageType::SizeType ptSize = ptImage->GetOutput()->GetLargestPossibleRegion().GetSize();
+  LabelImageType::SpacingType labelSpacing = labelImage->GetOutput()->GetSpacing();
+  LabelImageType::PointType labelOrigin = labelImage->GetOutput()->GetOrigin();
+  LabelImageType::SizeType labelSize = labelImage->GetOutput()->GetLargestPossibleRegion().GetSize();
+  for(unsigned int i=0; i<Dimension; ++i)
+  {
+    if(abs(ptSpacing[i]-labelSpacing[i]) > 1e-6) sameSpace = false;
+    if(abs(ptOrigin[i]-labelOrigin[i]) > 1e-6) sameSpace = false;
+    if(ptSize[i] != labelSize[i]) sameSpace = false;
+  }
+  
   //resample the image to the resolution of the label
   typedef itk::ResampleImageFilter<ImageType, ImageType> ResamplerType;
   ResamplerType::Pointer resampler = ResamplerType::New();
   //itk::PluginFilterWatcher watchResampler(resampler, "Resample Image", CLPProcessInformation);
-  resampler->SetInput(ptImage->GetOutput());
-  resampler->UseReferenceImageOn();
-  resampler->SetReferenceImage(labelImage->GetOutput());
-  resampler->UpdateLargestPossibleRegion();
+  if(!sameSpace)
+  {
+    resampler->SetInput(ptImage->GetOutput());
+    resampler->UseReferenceImageOn();
+    resampler->SetReferenceImage(labelImage->GetOutput());
+    resampler->UpdateLargestPossibleRegion();
+    resampler->Update();
+  }
   typedef itk::QuantitativeIndicesComputationFilter<ImageType,LabelImageType> QIFilterType;
 
   if(!returnCSV){
@@ -77,11 +96,16 @@ int main( int argc, char * argv[] )
 
     QIFilterType::Pointer qiCompute = QIFilterType::New();
     //itk::PluginFilterWatcher watchFilter(qiCompute, "Quantitative Indices Computation", CLPProcessInformation);
-    //qiCompute->SetInputImage(ptImage->GetOutput());
-    qiCompute->SetInputImage(resampler->GetOutput());
+    if(sameSpace)
+    {
+      qiCompute->SetInputImage(ptImage->GetOutput());
+    }
+    else{
+      qiCompute->SetInputImage(resampler->GetOutput());
+    }
     qiCompute->SetInputLabelImage(labelImage->GetOutput());
     qiCompute->SetCurrentLabel( (int)Label_Value );
-    qiCompute->Update();
+    //qiCompute->Update();
 
     if(Mean||RMS||SD||Max||Min||Volume||TLG||Glycolysis_Q1||Glycolysis_Q2||Glycolysis_Q3||Glycolysis_Q4||Q1_Distribution||Q2_Distribution||Q3_Distribution||Q4_Distribution)
       {
@@ -353,7 +377,13 @@ int main( int argc, char * argv[] )
       QIFilterType::Pointer qiCompute = QIFilterType::New();
       //itk::PluginFilterWatcher watchFilter(qiCompute, "Quantitative Indices Computation", CLPProcessInformation);
       //qiCompute->SetInputImage(ptImage->GetOutput());
-      qiCompute->SetInputImage(resampler->GetOutput());
+      if(sameSpace)
+      {
+        qiCompute->SetInputImage(ptImage->GetOutput());
+      }
+      else{
+        qiCompute->SetInputImage(resampler->GetOutput());
+      }
 
       qiCompute->SetInputLabelImage(labelImage->GetOutput());
       qiCompute->SetCurrentLabel( labelValue );

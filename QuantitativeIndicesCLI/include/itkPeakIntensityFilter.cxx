@@ -474,12 +474,12 @@ PeakIntensityFilter<TImage, TLabelImage>
     if(lit.Get() == m_CurrentLabel)
     {
       IndexType currentIndex = lit.GetIndex();
-      int labelSum = maskOperator->EvaluateAtIndex(currentIndex);
+      int labelSum = (maskOperator->EvaluateAtIndex(currentIndex))/m_CurrentLabel;
       if( !m_UseInteriorOnly )
       {
         labelSum = m_MaskCount;
       }
-      if( (labelSum/m_CurrentLabel) == m_MaskCount ) // valid kernel placement
+      if( labelSum == m_MaskCount ) // valid kernel placement
       {
         validPlacementFound = true;
         double center_val = it.Get();

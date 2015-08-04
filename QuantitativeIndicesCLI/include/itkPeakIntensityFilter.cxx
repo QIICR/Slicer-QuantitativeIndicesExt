@@ -444,6 +444,11 @@ PeakIntensityFilter<TImage, TLabelImage>
   }
   this->ExtractLabelRegion();
   
+  if(!m_CroppedInputImage || !m_CroppedLabelImage)
+  {
+    return;
+  }
+  
   // create the kernel operators
   typename NeighborhoodOperatorImageFunctionType::Pointer peakOperator = NeighborhoodOperatorImageFunctionType::New();
   peakOperator->SetInputImage(this->GetInputImage());
@@ -462,6 +467,7 @@ PeakIntensityFilter<TImage, TLabelImage>
   it.GoToBegin(); lit.GoToBegin(); 
   double peak = itk::NumericTraits<double>::min();
   double max_center_val = itk::NumericTraits<double>::min();
+  bool validPlacementFound = false;
   IndexType peakIndex;
   while(!it.IsAtEnd())
   {
@@ -473,8 +479,9 @@ PeakIntensityFilter<TImage, TLabelImage>
       {
         labelSum = m_MaskCount;
       }
-      if( labelSum == m_MaskCount ) // valid kernel placement
+      if( (labelSum/m_CurrentLabel) == m_MaskCount ) // valid kernel placement
       {
+        validPlacementFound = true;
         double center_val = it.Get();
         double val = peakOperator->EvaluateAtIndex(currentIndex);
         if( (float)val>(float)peak )
@@ -495,14 +502,25 @@ PeakIntensityFilter<TImage, TLabelImage>
     }
     ++it; ++lit;
   }
-  m_PeakValue = peak;
-  m_PeakIndex = peakIndex;
-  PointType peakLocation;
-  m_CroppedInputImage->TransformIndexToPhysicalPoint(peakIndex,peakLocation);
-  m_PeakLocation = peakLocation;
-
+  
+  if(validPlacementFound)
+  {
+    m_PeakValue = peak;
+    m_PeakIndex = peakIndex;
+    PointType peakLocation;
+    m_CroppedInputImage->TransformIndexToPhysicalPoint(peakIndex,peakLocation);
+    m_PeakLocation = peakLocation;
 //std::cout << "Max Center Value: " << max_center_val << std::endl;
 //std::cout << "Kernel Volume: " << this->GetKernelVolume() << std::endl;
+  }
+  else{
+    m_PeakValue = std::numeric_limits<double>::quiet_NaN();
+    for(unsigned int i=0; i<ImageDimension; ++i)
+    {
+      m_PeakIndex[i] = std::numeric_limits<int>::quiet_NaN();
+      m_PeakLocation[i] = std::numeric_limits<double>::quiet_NaN();
+    }
+  }
 
 }
 

@@ -531,11 +531,8 @@ QuantitativeIndicesComputationFilter<TImage, TLabelImage>
   //peakFilter->Update(); //TODO
   peakFilter->CalculatePeak();
    
-  
   m_PeakValue = peakFilter->GetPeakValue();
   m_PeakLocation = peakFilter->GetPeakLocation();
-
-  
 
 }
 

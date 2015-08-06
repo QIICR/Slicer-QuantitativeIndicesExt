@@ -72,9 +72,9 @@
       <default>false</default>
     </boolean>
     <boolean>
-      <name>SD</name>
+      <name>Std_Deviation</name>
       <label>Standard Deviation</label>
-      <longflag>--SD</longflag>
+      <longflag>--stddev</longflag>
       <description><![CDATA[Standard deviation in region of interest]]></description>
       <default>false</default>
     </boolean>
@@ -259,7 +259,7 @@
       <description><![CDATA[Total lesion glycolysis]]></description>
     </string>
     <string>
-      <name>SD_s</name>
+      <name>Std_Deviation_s</name>
       <label>Standard Deviation</label>
       <channel>output</channel>
       <description><![CDATA[Standard deviation in region of interest]]></description>

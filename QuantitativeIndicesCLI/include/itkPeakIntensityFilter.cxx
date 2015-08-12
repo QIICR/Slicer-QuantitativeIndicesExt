@@ -9,6 +9,7 @@
 #define PI 3.14159265359
 
 #include "itkImageFileWriter.h"
+#include "math.h"
 
 
 namespace itk
@@ -304,10 +305,245 @@ void
 PeakIntensityFilter<TImage, TLabelImage>
 ::BuildPeakKernel()
 {
-std::cout << "  BuildPeakKernel()\n";
+//std::cout << "  BuildPeakKernel()\n";
+  ImagePointer inputImage = this->GetInputImage();
+  LabelImagePointer labelImage = this->GetInputLabelImage();
+  SpacingType voxelSize = inputImage->GetSpacing();
 
+  // build the full-resolution image of the kernel
+  SizeType kernelSize;
+  for(unsigned int i=0; i<ImageDimension; ++i)
+  {
+    kernelSize[i] = ceil(m_SphereRadius[i]/voxelSize[i])*2+1;
+    m_KernelRadius[i] = (kernelSize[i]-1)*0.5;
+  }
+  
+  PointType origin; origin.Fill(0);
+  IndexType startIndex; startIndex.Fill(0);
+  m_KernelImage = InternalImageType::New();
+  m_KernelImage->SetOrigin(origin);
+  typename InternalImageType::RegionType kernelRegion(startIndex, kernelSize);
+  m_KernelImage->SetRegions(kernelRegion);
+  m_KernelImage->SetSpacing(voxelSize);
+  m_KernelImage->Allocate();
+  m_KernelImage->FillBuffer(0.0);
+
+  typename InternalImageType::Pointer octant = InternalImageType::New();
+  octant->SetOrigin(origin);
+  SizeType octantSize;
+  for(unsigned int i=0; i<ImageDimension; ++i)
+  {
+    octantSize[i] = ceil(m_SphereRadius[i]/voxelSize[i])+1;
+  }
+  typename InternalImageType::RegionType octantRegion(startIndex, octantSize);
+  octant->SetRegions(octantRegion);
+  octant->SetSpacing(voxelSize);
+  octant->Allocate();
+  octant->FillBuffer(0.0);
+
+  typedef typename itk::ImageRegionIteratorWithIndex<InternalImageType> KernelIteratorType;
+  KernelIteratorType okit(octant, octantRegion);
+  okit.GoToBegin();
+  while(!okit.IsAtEnd())
+  {
+    IndexType currentIndex = okit.GetIndex();
+    okit.Set( this->GetVoxelVolume(m_SphereRadius[0],currentIndex[0]*voxelSize[0],currentIndex[1]*voxelSize[1],
+					currentIndex[2]*voxelSize[2],voxelSize[0],voxelSize[1],voxelSize[2]) );
+    ++okit;
+  }
+
+  KernelIteratorType kit(m_KernelImage, kernelRegion);
+  kit.GoToBegin();
+
+  double x = kernelSize[0]*0.5;
+  double y = kernelSize[1]*0.5;
+  double z = kernelSize[2]*0.5;
+
+  while(!kit.IsAtEnd())
+  {
+    IndexType transIndex = kit.GetIndex();
+
+    if ( transIndex[0] < x )
+    {
+      transIndex[0] = x - transIndex[0];
+    }
+    else
+    {
+      transIndex[0] = transIndex[0] - x + 1;
+    }
+    if ( transIndex[1] < y )
+    {
+      transIndex[1] = y - transIndex[1];
+    }
+    else
+    {
+      transIndex[1] = transIndex[1] - y + 1;
+    }
+    if ( transIndex[2] < z )
+    {
+      transIndex[2] = z - transIndex[2];
+    }
+    else
+    {
+      transIndex[2] = transIndex[2] - z + 1;
+    };
+
+    okit.SetIndex( transIndex );
+    double compensation = okit.Get();
+    if ( transIndex[0] == 0 )
+    {
+      compensation *= 2;
+    }
+    if ( transIndex[1] == 0 )
+    {
+      compensation *= 2;
+    }
+    if ( transIndex[2] == 0 )
+    {
+      compensation *= 2;
+    }
+
+    kit.Set( compensation );
+    ++kit;
+  }
 }
 
+//HELPER FUNCTIONS FOR BuildPeakKernel()------------------------------------------------
+template <class TImage, class TLabelImage>
+double
+PeakIntensityFilter<TImage, TLabelImage>
+::FEdge( double r, double a, double b )
+{
+//FEDGE Returns the volume fraction of a sphere that intersects with two 
+//faces and an edge of a box.
+//   Input:
+//     r - radius of the sphere
+//     a - distance from center of sphere to box edge in x-direction
+//     b - distance from center of sphere to box edge in y-direction
+//   Output:
+//     fraction of sphere's volume that intersects the box
+
+  if ( pow(a,2) + pow(b,2) >= pow(r,2) )
+  {
+    return 0.0;
+  }
+
+  if ( a==0 && b==0 )
+  {
+    return 0.25;
+  }
+
+  double ahat = a/r;
+  double bhat = b/r;
+  double xhat = sqrt(1-pow(ahat,2) - pow(bhat,2));
+
+  return (1/(4*PI))*(2*ahat*bhat*xhat + 2*atan(bhat*xhat/ahat)
+                   + 2*atan(ahat*xhat/bhat)
+                   - (3*bhat-pow(bhat,3))*atan(xhat/ahat)
+                   - (3*ahat-pow(ahat,3))*atan(xhat/bhat));
+}
+
+template <class TImage, class TLabelImage>
+double
+PeakIntensityFilter<TImage, TLabelImage>
+::FCorner( double r, double a, double b, double c )
+{
+//FCORNER Returns the volume fraction of a sphere that intersects with three 
+//faces and a corner of a box.
+//   Input:
+//     r - radius of the sphere
+//     a - distance from center of sphere to box corner in x-direction
+//     b - distance from center of sphere to box corner in y-direction
+//     c - distance from center of sphere to box corner in z-direction
+//   Output:
+//     fraction of sphere's volume that intersects the box
+
+  if ( pow(a,2)+pow(b,2)+pow(c,2)>=pow(r,2) )
+  {
+    return 0.0;
+  }
+
+  if ( a==0 && b==0 && c==0 )
+  {
+    return 0.125;
+  }
+
+  double f_edge = FEdge(r,a,b);
+  double ahat = a/r;
+  double bhat = b/r;
+  double chat = c/r;
+  double Ahat = sqrt(1-pow(ahat,2)-pow(chat,2));
+  double Bhat = sqrt(1-pow(bhat,2)-pow(chat,2));
+
+  return 0.5*f_edge-0.125*(1/PI)*( 6*ahat*bhat*chat - 2*ahat*Ahat*chat
+                                - 2*bhat*Bhat*chat
+                                - (3*bhat-pow(bhat,3))*atan(chat/Bhat)
+                                - (3*ahat-pow(ahat,3))*atan(chat/Ahat)
+                                + (3*chat-pow(chat,3))*(atan(Ahat/ahat)-atan(bhat/Bhat))
+                                + 2*(atan(chat*ahat/Ahat)+atan(chat*bhat/Bhat)) );
+}
+
+template <class TImage, class TLabelImage>
+double
+PeakIntensityFilter<TImage, TLabelImage>
+::GetVoxelVolume( double r, double x, double y, double z, double spx, double spy, double spz )
+{
+//GET_VOXEL_VOLUME Returns the volume fraction of a voxel intersecting with
+//a sphere
+//   Input:
+//     r - radius of sphere
+//     x - x-coordinate of the center of the voxel
+//     y - y-coordinate of the center of the voxel
+//     z - z-coordinate of the center of the voxel
+//     spx - spacing of voxel in the x direction
+//     spy - spacing of voxel in the y direction
+//     spz - spacing of voxel in the z direction
+//   Output:
+//     fraction of the voxel's volume that intersects the sphere
+
+  // determine the eight corners of the voxel
+  double close[] = {x-0.5*spx, y-0.5*spy, z-0.5*spz};
+  double far[] = {close[0]+spx, close[1]+spy, close[2]+spz};
+  double corners[8][3] = { {close[0], close[1], close[2]},
+			 {far[0], close[1], close[2]},
+			 {close[0], far[1], close[2]},
+			 {close[0], close[1], far[2]},
+			 {far[0], close[1], far[2]},
+			 {close[0], far[1], far[2]},
+			 {far[0], far[1], close[2]},
+			 {far[0], far[1], far[2]} };
+
+
+
+  for ( int m = 0; m < 8; ++m )
+  {
+    for ( int n = 0; n < 3; ++n )
+    {
+      if ( corners[m][n] < 0.0 )
+      {
+        corners[m][n] = 0.0;
+      }
+    }
+  }
+
+  if ( pow(corners[0][0],2)+pow(corners[0][1],2)+pow(corners[0][2],2) >= pow(r,2) )
+  { 
+    return 0.0;
+  }
+
+  // get the volume defined by each corner
+  double v1 = FCorner(r,corners[0][0],corners[0][1],corners[0][2])*(4*PI/3)*pow(r,3);
+  double v2 = FCorner(r,corners[1][0],corners[1][1],corners[1][2])*(4*PI/3)*pow(r,3);
+  double v3 = FCorner(r,corners[2][0],corners[2][1],corners[2][2])*(4*PI/3)*pow(r,3);
+  double v4 = FCorner(r,corners[3][0],corners[3][1],corners[3][2])*(4*PI/3)*pow(r,3);
+  double v5 = FCorner(r,corners[4][0],corners[4][1],corners[4][2])*(4*PI/3)*pow(r,3);
+  double v6 = FCorner(r,corners[5][0],corners[5][1],corners[5][2])*(4*PI/3)*pow(r,3);
+  double v7 = FCorner(r,corners[6][0],corners[6][1],corners[6][2])*(4*PI/3)*pow(r,3);
+  double v8 = FCorner(r,corners[7][0],corners[7][1],corners[7][2])*(4*PI/3)*pow(r,3);
+
+  // determine the volume fraction of the voxel
+  return (v1-v2-v3-v4+v5+v6+v7-v8)/(spx*spy*spz);
+}
 
 //----------------------------------------------------------------------------
 /*
@@ -584,11 +820,11 @@ PeakIntensityFilter<TImage, TLabelImage>
   labelNeighborhoodOperator->SetOperator(labelNeighborhood); 
   neighborhoodOperator->SetOperator(neighborhood);
   
-  /*typedef typename itk::ImageFileWriter<InternalImageType> WriterType;
+  typedef typename itk::ImageFileWriter<InternalImageType> WriterType;
   typename WriterType::Pointer writer = WriterType::New();
   writer->SetFileName( "mask.nrrd" );
   writer->SetInput( m_KernelImage );
-  writer->Update();*/
+  writer->Update();
 
 }
 

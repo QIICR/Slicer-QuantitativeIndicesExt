@@ -2,7 +2,7 @@
 #define _itkPeakIntensityFilter_cxx
 
 #include "itkPeakIntensityFilter.h"
-#include "itkImageRegionConstIteratorWithIndex.h"
+#include "itkImageRegionIteratorWithIndex.h"
 #include "itkExtractImageFilter.h"
 #include <math.h>
 
@@ -26,6 +26,7 @@ PeakIntensityFilter<TImage, TLabelImage>
   m_SphereRadius.Fill(r); // approx. 1cc sphere
   m_UseInteriorOnly = true;
   m_UseApproximateKernel = false;
+  m_SamplingFactor = 20;
 }
 
 //----------------------------------------------------------------------------
@@ -225,6 +226,7 @@ PeakIntensityFilter<TImage, TLabelImage>
   lit.GoToBegin();
   IndexType lowerIndex;
   IndexType upperIndex;
+
   for(unsigned int i=0; i<ImageDimension; ++i)
   {
     lowerIndex[i] = itk::NumericTraits<int>::max();
@@ -267,10 +269,9 @@ PeakIntensityFilter<TImage, TLabelImage>
     minIndex[i] = std::floor(lowerIndex[i]-pad[i]);
     if(minIndex[i]<imageIndex[i]) minIndex[i]=imageIndex[i];
     maxIndex[i] = std::floor(upperIndex[i]+pad[i]);
-    if((unsigned int)maxIndex[i]>imageSize[i]-1) maxIndex[i]=imageSize[i];
+    if(maxIndex[i]>imageSize[i]-1) maxIndex[i]=imageSize[i]-1;
     size[i] = maxIndex[i]-minIndex[i]+1;
   }
-  
   typename ImageType::RegionType region(minIndex, size);
   
   typedef typename itk::ExtractImageFilter<ImageType,ImageType> ImageExtractorType;
@@ -287,7 +288,7 @@ PeakIntensityFilter<TImage, TLabelImage>
 #endif
   imageExtractor->Update();
   labelExtractor->Update();
-  
+
   m_CroppedInputImage = imageExtractor->GetOutput();
   m_CroppedLabelImage = labelExtractor->GetOutput();
 
@@ -314,7 +315,7 @@ PeakIntensityFilter<TImage, TLabelImage>
   SizeType kernelSize;
   for(unsigned int i=0; i<ImageDimension; ++i)
   {
-    kernelSize[i] = ceil(m_SphereRadius[i]/voxelSize[i])*2+1;
+    kernelSize[i] = floor(m_SphereRadius[i]/voxelSize[i])*2+1;
     m_KernelRadius[i] = (kernelSize[i]-1)*0.5;
   }
   
@@ -569,7 +570,7 @@ PeakIntensityFilter<TImage, TLabelImage>
   for(unsigned int i=0; i<ImageDimension; ++i)
   {
     upsampledKernelSpacing[i] = voxelSize[i]/m_SamplingFactor;
-    upsampledKernelSize[i] = (std::ceil(m_SphereRadius[i]/voxelSize[i])*2+1)*m_SamplingFactor;
+    upsampledKernelSize[i] = (std::ceil(m_SphereRadius[i]/voxelSize[i])*2+1)*m_SamplingFactor; //TODO ceiling or floor?
     voxelFraction /= m_SamplingFactor; // volume fraction of upsampled voxel
   }
   PointType origin; origin.Fill(0);
@@ -705,33 +706,44 @@ PeakIntensityFilter<TImage, TLabelImage>
   double max_center_val = itk::NumericTraits<double>::min();
   bool validPlacementFound = false;
   IndexType peakIndex;
+  SpacingType spacing = this->GetInputImage()->GetSpacing();
+  SizeType imageSize = this->GetInputImage()->GetLargestPossibleRegion().GetSize();
   while(!it.IsAtEnd())
   {
     if(lit.Get() == m_CurrentLabel)
     {
       IndexType currentIndex = lit.GetIndex();
-      int labelSum = (maskOperator->EvaluateAtIndex(currentIndex))/m_CurrentLabel;
-      if( !m_UseInteriorOnly )
+      double xPosition = (currentIndex[0] + 0.5)*spacing[0];
+      double yPosition = (currentIndex[1] + 0.5)*spacing[1];
+      double zPosition = (currentIndex[2] + 0.5)*spacing[2];
+      if ( !m_UseInteriorOnly ||
+	( xPosition - m_SphereRadius[0] >= 0 && xPosition + m_SphereRadius[0] < imageSize[0]*spacing[0] &&
+	  yPosition - m_SphereRadius[1] >= 0 && yPosition + m_SphereRadius[1] < imageSize[1]*spacing[1] &&
+	  zPosition - m_SphereRadius[2] >= 0 && zPosition + m_SphereRadius[2] < imageSize[2]*spacing[2] ) )
       {
-        labelSum = m_MaskCount;
-      }
-      if( labelSum == m_MaskCount ) // valid kernel placement
-      {
-        validPlacementFound = true;
-        double center_val = it.Get();
-        double val = peakOperator->EvaluateAtIndex(currentIndex);
-        if( (float)val>(float)peak )
+	int labelSum = (maskOperator->EvaluateAtIndex(currentIndex))/m_CurrentLabel;
+	if( !m_UseInteriorOnly )
         {
-          peak = val;
-          max_center_val = center_val;
-          peakIndex = currentIndex;
+          labelSum = m_MaskCount;
         }
-        if((float)val==(float)peak)
+        if( labelSum == m_MaskCount ) // valid kernel placement
         {
-          if(center_val > max_center_val)
+          validPlacementFound = true;
+          double center_val = it.Get();
+          double val = peakOperator->EvaluateAtIndex(currentIndex);
+          if( (float)val>(float)peak )
           {
+            peak = val;
             max_center_val = center_val;
             peakIndex = currentIndex;
+          }
+          if((float)val==(float)peak)
+          {
+            if(center_val > max_center_val)
+            {
+              max_center_val = center_val;
+              peakIndex = currentIndex;
+            }
           }
         }
       }
@@ -753,7 +765,8 @@ PeakIntensityFilter<TImage, TLabelImage>
     m_PeakValue = std::numeric_limits<double>::quiet_NaN();
     for(unsigned int i=0; i<ImageDimension; ++i)
     {
-      m_PeakIndex[i] = std::numeric_limits<int>::quiet_NaN();
+      //m_PeakIndex[i] = std::numeric_limits<int>::quiet_NaN();
+      m_PeakIndex[i] = -1;
       m_PeakLocation[i] = std::numeric_limits<double>::quiet_NaN();
     }
   }

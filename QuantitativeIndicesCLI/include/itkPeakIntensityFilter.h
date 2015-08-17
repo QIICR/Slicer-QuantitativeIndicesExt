@@ -88,7 +88,7 @@ protected:
                             LabelNeighborhoodOperatorImageFunctionType* labelNeighborhoodOperator );
   void ExtractLabelRegion();
   void CalculateSphereRadius();
-
+  
   double FEdge( double r, double a, double b );
   double FCorner( double r, double a, double b, double c );
   double GetVoxelVolume( double r, double x, double y, double z, double spx, double spy, double spz );

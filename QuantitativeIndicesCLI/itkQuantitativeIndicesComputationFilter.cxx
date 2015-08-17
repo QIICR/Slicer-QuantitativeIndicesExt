@@ -534,7 +534,7 @@ QuantitativeIndicesComputationFilter<TImage, TLabelImage>
   m_PeakValue = peakFilter->GetPeakValue();
   m_PeakLocation = peakFilter->GetPeakLocation();
   //std::cout << "Peak Location: " << m_PeakLocation << std::endl;
-  std::cout << "Peak Index: " << peakFilter->GetPeakIndex() << std::endl;
+  //std::cout << "Peak Index: " << peakFilter->GetPeakIndex() << std::endl;
 }
 
 

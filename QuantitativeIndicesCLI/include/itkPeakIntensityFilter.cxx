@@ -315,10 +315,10 @@ PeakIntensityFilter<TImage, TLabelImage>
   SizeType kernelSize;
   for(unsigned int i=0; i<ImageDimension; ++i)
   {
-    kernelSize[i] = floor(m_SphereRadius[i]/voxelSize[i])*2+1;
+    kernelSize[i] = ceil((m_SphereRadius[i]/voxelSize[i])-0.5)*2+1;
     m_KernelRadius[i] = (kernelSize[i]-1)*0.5;
   }
-  
+
   PointType origin; origin.Fill(0);
   IndexType startIndex; startIndex.Fill(0);
   m_KernelImage = InternalImageType::New();
@@ -570,7 +570,7 @@ PeakIntensityFilter<TImage, TLabelImage>
   for(unsigned int i=0; i<ImageDimension; ++i)
   {
     upsampledKernelSpacing[i] = voxelSize[i]/m_SamplingFactor;
-    upsampledKernelSize[i] = (std::ceil(m_SphereRadius[i]/voxelSize[i])*2+1)*m_SamplingFactor; //TODO ceiling or floor?
+    upsampledKernelSize[i] = (ceil((m_SphereRadius[i]/voxelSize[i])-0.5)*2+1)*m_SamplingFactor;
     voxelFraction /= m_SamplingFactor; // volume fraction of upsampled voxel
   }
   PointType origin; origin.Fill(0);
@@ -618,7 +618,7 @@ PeakIntensityFilter<TImage, TLabelImage>
   SizeType kernelSize;
   for(unsigned int i=0; i<ImageDimension; ++i)
   {
-    kernelSize[i] = ceil(m_SphereRadius[i]/voxelSize[i])*2+1;
+    kernelSize[i] = ceil((m_SphereRadius[i]/voxelSize[i])-0.5)*2+1;
     m_KernelRadius[i] = (kernelSize[i]-1)*0.5;
   }
 

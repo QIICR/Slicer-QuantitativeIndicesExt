@@ -1,5 +1,7 @@
-Slicer Quantitative Indices Extension
-=====================================
+NOTICE! This extension has moved
+--------
+
+The Quantitative Indices extension is now incorporated into the Slicer [PET-IndiC][] extension.
 
 Acknowledgements
 --------
@@ -13,3 +15,4 @@ Ethan Ulrich (University of Iowa), Andrey Fedorov (SPL), Markus van Tol (Univers
 
 [Quantitative Imaging to Assess Response in Cancer Therapy Trials]: http://imaging.cancer.gov/programsandresources/specializedinitiatives/qin/iowa 
 [Quantitative Image Informatics for Cancer Research]: http://qiicr.org 
+[PET-IndiC]: https://github.com/QIICR/PET-IndiC
